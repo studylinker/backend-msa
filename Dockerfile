@@ -1,5 +1,5 @@
-# 1. Base Image: 가볍고 안정적인 OpenJDK 17 사용
-FROM openjdk:17-jdk-slim
+
+FROM amazoncorretto:17
 
 # 2. Argument: CI/CD에서 넘겨준 서비스 이름 (예: auth-service)
 # 워크플로우의 build-args: SERVICE_NAME=... 부분이 여기로 들어옵니다.
