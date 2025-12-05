@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://studydb.choiiq8m684g.ap-northeast-2.rds.amazonaws.com:3306/studydb
-    username: studyuser
-    password: 12200000
+    url: jdbc:mariadb://mariadb-primary.c3kkm2iwaeig.ap-northeast-2.rds.amazonaws.com:3306/studydb
+    username: admin
+    password: admin1234!
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
@@ -17,4 +17,5 @@ spring:
     open-in-view: false
 
 jwt:
-  secret: this_is_a_very_long_random_secret_key_32_chars
+  secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
+  expiration: 3600000
