@@ -8,6 +8,20 @@ target/
 *.iws
 out/
 
+### Service
+auth-service
+recommend-service
+stats-service/.mvn
+stats-service/HELP.md
+stats-service/mvnw
+stats-service/mvnw.cmd
+system-service/.mvn
+system-service/HELP.md
+system-service/mvnw
+system-service/mvnw.cmd
+
+
+
 ### OS 공통
 .DS_Store
 Thumbs.db
