@@ -1,0 +1,21 @@
+### Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### IntelliJ
+.idea/
+*.iml
+*.iws
+out/
+
+### OS 공통
+.DS_Store
+Thumbs.db
+
+### 로그/기타
+*.log
+*.tmp
+*.bak
+
+### 환경 설정 (필요시)
+*.env
