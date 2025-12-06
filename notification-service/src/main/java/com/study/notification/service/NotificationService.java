@@ -4,6 +4,7 @@ import com.study.notification.domain.Notification;
 import com.study.notification.dto.NotificationRequest;
 import com.study.notification.dto.NotificationResponse;
 import com.study.notification.repository.NotificationRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ public class NotificationService {
                 .toList();
     }
 
-    // 🔹 유저 읽지 않은 알림 조회.
+    // 🔹 유저 읽지 않은 알림 조회
     @Transactional(readOnly = true)
     public List<NotificationResponse> findUnreadResponsesByUser(Long userId) {
         return notificationRepository
@@ -60,7 +61,8 @@ public class NotificationService {
                         new IllegalArgumentException("알림을 찾을 수 없습니다. ID: " + id));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("본인의 알림만 읽음 처리할 수 있습니다.");
+            // 권한 문제이므로 AccessDeniedException 사용
+            throw new AccessDeniedException("본인의 알림만 읽음 처리할 수 있습니다.");
         }
 
         notification.setIsRead(true);
@@ -75,7 +77,7 @@ public class NotificationService {
                         new IllegalArgumentException("알림을 찾을 수 없습니다. ID: " + id));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("본인의 알림만 삭제할 수 있습니다.");
+            throw new AccessDeniedException("본인의 알림만 삭제할 수 있습니다.");
         }
 
         notificationRepository.delete(notification);

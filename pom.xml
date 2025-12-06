@@ -26,6 +26,7 @@
         <module>recommend-service</module>
         <module>stats-service</module>
         <module>system-service</module>
+        <module>user-service</module>
 
         <!-- 나중에 user-service 등도 추가 -->
     </modules>

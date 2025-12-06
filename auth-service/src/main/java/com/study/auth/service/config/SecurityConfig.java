@@ -23,23 +23,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // JWT, REST API라서 CSRF 꺼버림
+                // JWT 기반이라 CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
 
-                // 세션 사용 안 함 (STATELESS)
+                // 세션을 STATELESS로 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ auth-service의 로그인/로그아웃는 인증 필요 없음
+                        // 🔥 AWS 로드밸런서 헬스체크 허용
+                        .requestMatchers("/actuator/health", "/health", "/", "/favicon.ico").permitAll()
+
+                        // 🔥 로그인 관련 API 허용
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 나머지는 일단 막아두기
+                        // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 );
 
-        // 여기서는 아직 JWT 필터 안 붙임 (토큰 검증은 study-service에서 하도록)
         return http.build();
     }
 }

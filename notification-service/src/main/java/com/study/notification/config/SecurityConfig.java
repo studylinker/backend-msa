@@ -1,6 +1,7 @@
 package com.study.notification.config;
 
-import com.study.common.security.JwtAuthenticationFilter; // ★ common-security 패키지명에 맞게 수정
+import com.study.common.security.JwtAuthenticationFilter;
+import com.study.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,28 +16,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // JWT API 서비스는 CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
-
-                // 세션을 사용하지 않는 Stateless 전략
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // 알림 서비스는 로그인 기능이 없음 → 모든 요청 JWT 필수
+                        .requestMatchers("/actuator/health", "/health", "/", "/favicon.ico").permitAll()
                         .requestMatchers("/api/notifications/**").authenticated()
-                        // 그 외 요청도 모두 차단
                         .anyRequest().authenticated()
                 )
 
-                // JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
