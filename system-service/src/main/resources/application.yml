@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: system-service
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:mariadb-primary.c3kkm2iwaeig.ap-northeast-2.rds.amazonaws.com}:${DB_PORT:3306}/${DB_NAME:studydb}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:your-password}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+    naming:
+      physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+  cache:
+    type: redis
+jwt:
+  secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,caches
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: true
+logging:
+  level:
+    root: INFO
+    com.study.service.recommend: DEBUG
+    org.springframework.cache: DEBUG

@@ -28,7 +28,7 @@ public class NotificationService {
                 .toList();
     }
 
-    // 🔹 유저 읽지 않은 알림 조회
+    // 🔹 유저 읽지 않은 알림 조회.
     @Transactional(readOnly = true)
     public List<NotificationResponse> findUnreadResponsesByUser(Long userId) {
         return notificationRepository

@@ -28,7 +28,7 @@ public class AuthController {
 
     // ============================
     // DELETE /api/auth/logout
-    // 토큰 만료(로그아웃 처리)
+    // 토큰 만료(로그아웃 처리).
     // ============================
     @DeleteMapping("/logout")
     public ResponseEntity<?> logout(
