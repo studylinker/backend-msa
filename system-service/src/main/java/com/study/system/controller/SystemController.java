@@ -14,7 +14,7 @@ public class SystemController {
 
     private final SystemService systemService;
 
-    // 🔥 백업 스냅샷 생성
+    // 🔥 백업 스냅샷 생성함
     @PostMapping("/backup")
     public ResponseEntity<String> createBackup() {
         systemService.createBackup();

@@ -14,7 +14,7 @@ public class PopularRecommendController {
     private final PopularLocationService popularLocationService;
 
     /**
-     * 인기 + 위치 기반 스터디 추천
+     * 인기 + 위치 기반 스터디 추천함
      * GET /api/recommend/popular?lat=..&lng=..&radiusKm=..&limit=..&popWeight=..&distanceWeight=..
      */
     @GetMapping("/popular")

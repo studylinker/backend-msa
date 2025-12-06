@@ -29,11 +29,22 @@ jobs:
               - 'user-service/**'
               - 'common-**/**'
               - 'pom.xml'
-            order-service:
-              - 'order-service/**'
+            notification-service:
+              - 'notification-service/**'
               - 'common-**/**'
               - 'pom.xml'
-            # ... 나머지 7개 서비스 추가 ...
+            recommend-service:
+              - 'recommend-service/**'
+              - 'common-**/**'
+              - 'pom.xml' 
+            system-service:
+              - 'system-service/**'
+              - 'common-**/**'
+              - 'pom.xml'    
+            stats-service:
+              - 'stats-service/**'
+              - 'common-**/**'
+              - 'pom.xml' 
 
   # [JOB 2] 동적 배포 단계
   build-and-deploy:

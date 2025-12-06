@@ -33,7 +33,7 @@ public class StatsController {
         return statsService.getAttendanceStats();
     }
 
-    // 4) 운영 대시보드 요약 정보
+    // 4) 운영 대시보드 요약 정보임.
     @GetMapping("/summary")
     public StatsSummaryResponse getSummary() {
         return statsService.getSummary();
