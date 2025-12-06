@@ -1,5 +1,5 @@
 server:
-  port: 10002
+  port: 10001
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"

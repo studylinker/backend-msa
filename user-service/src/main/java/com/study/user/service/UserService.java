@@ -217,4 +217,12 @@ public class UserService {
 
         return MannerScoreResponse.fromEntity(user);
     }
+
+    // UserService 안에 추가
+    public User getByUsernameOrThrow(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다: " + username));
+    }
 }
+

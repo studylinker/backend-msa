@@ -1,5 +1,6 @@
 package com.study.user.dto;
 
+import com.study.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,8 +14,7 @@ public class MannerScoreResponse {
     private Float leaderScore;
     private Float violationScore;
 
-    // 편의용 정적 팩토리 메서드
-    public static MannerScoreResponse fromEntity(com.study.service.user.domain.User user) {
+    public static MannerScoreResponse fromEntity(User user) {
         return new MannerScoreResponse(
                 user.getUserId(),
                 user.getCurrentMannerScore(),
