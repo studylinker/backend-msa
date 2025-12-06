@@ -18,7 +18,7 @@ public class AuthService {
 
     /**
      * 👉 임시 로그인 로직
-     *  - DB 연동 없이, 하드코딩 계정으로만 로그인 허용
+     *  - DB 연동 없이, 하드코딩 계정으로만 로그인 허용함
      *  - username: admin, password: 1234 인 경우에만 성공
      */
     public String login(String username, String password) {
