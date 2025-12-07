@@ -14,17 +14,24 @@ import software.amazon.awssdk.services.rds.model.CreateDbSnapshotRequest;
 @Slf4j
 public class SystemService {
 
-    // ✅ 리전과 RDS 인스턴스 ID
     @Value("${aws.region}")
     private String region;
 
     @Value("${aws.rds-instance-id}")
     private String rdsInstanceId;
 
-    /**
-     * RDS 스냅샷 백업 생성
-     */
+    @Value("${aws.backup.enabled:false}")
+    private boolean backupEnabled;
+
+    @Value("${system.cache.enabled:false}")
+    private boolean cacheEnabled;
+
     public void createBackup(Long adminId) {
+
+        if (!backupEnabled) {
+            log.info("🔎 [LOCAL MODE] RDS Backup SKIPPED. adminId={}", adminId);
+            return;
+        }
 
         RdsClient rdsClient = RdsClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.create())
@@ -41,15 +48,15 @@ public class SystemService {
         rdsClient.createDBSnapshot(request);
 
         log.info("✅ AWS RDS Snapshot Created by adminId={} snapshotId={}", adminId, snapshotId);
-
         rdsClient.close();
     }
 
-    /**
-     * 캐시 무효화
-     */
     public void clearCache(Long adminId) {
-        // TODO: Redis / CDN / LocalCache 등 연결 예정
+        if (!cacheEnabled) {
+            log.info("🔎 [LOCAL MODE] Cache clear SKIPPED. adminId={}", adminId);
+            return;
+        }
+
         log.info("✅ Cache cleared by adminId={}", adminId);
     }
 }

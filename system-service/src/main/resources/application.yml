@@ -8,6 +8,12 @@ spring:
     password: 12200000
     driver-class-name: org.mariadb.jdbc.Driver
 
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+      idle-timeout: 30000
+      pool-name: system-service-hikari
+
   jpa:
     open-in-view: false
     hibernate:
@@ -24,8 +30,10 @@ jwt:
   expiration: 3600000
 
 aws:
-  region: ap-northeast-2             # TODO: 실제 리전
-  rds-instance-id: studydb-instance  # TODO: 실제 RDS 인스턴스 ID
+  region: ap-northeast-2
+  rds-instance-id: studydb-instance
+  backup:
+    enabled: false   # 🔥 로컬에서만 false 로 두고, 나중에 운영은 true
 
 management:
   endpoints:
