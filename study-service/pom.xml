@@ -10,7 +10,6 @@
         <groupId>com.study</groupId>
         <artifactId>study-monorepo</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../../../../Downloads/study-service-main/study-service-main/pom.xml</relativePath>
     </parent>
 
     <!-- 📌 현재 서비스 식별자 -->
