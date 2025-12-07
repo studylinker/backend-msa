@@ -14,7 +14,7 @@ spring:
 
     # ⭐ HikariCP 커넥션 풀 설정 추가
     hikari:
-      maximum-pool-size: 10       # 🔥 커넥션 풀 최대 10개 (MSA에서는 반드시 줄이기)
+      maximum-pool-size: 10       # 🔥 커넥션 풀 최대 10개 (MSA에서는 반드시 줄이기!
       minimum-idle: 5
       idle-timeout: 600000        # 10분
       max-lifetime: 1800000       # 30분 (DB wait_timeout보다 작게 유지)
