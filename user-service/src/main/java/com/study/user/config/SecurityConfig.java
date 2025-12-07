@@ -1,5 +1,6 @@
 package com.study.user.config;
 
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import com.study.common.security.JwtAuthenticationFilter;
 import com.study.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;

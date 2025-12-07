@@ -1,9 +1,9 @@
 server:
-  port: 10001
+  port: 10003
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
-  expiration: 3600000
+  expiration: 3600000   # 1 hour
 
 spring:
   datasource:
@@ -13,12 +13,18 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
-    open-in-view: false
     hibernate:
       ddl-auto: update
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    com.study.study: DEBUG
