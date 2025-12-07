@@ -1,13 +1,20 @@
 package com.study.stats.controller;
 
+import com.study.common.security.JwtUserInfo;
 import com.study.stats.dto.ChartResponse;
 import com.study.stats.dto.StatsSummaryResponse;
 import com.study.stats.service.StatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 운영 대시보드 통계 조회 컨트롤러
+ * - ADMIN 권한이 있어야 접근 가능 (/api/stats/**)
+ */
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
@@ -15,28 +22,32 @@ public class StatsController {
 
     private final StatsService statsService;
 
-    // 1) 스터디 생성 수
+    // 1) 스터디 생성 수 (월별)
     @GetMapping("/study-count")
-    public ChartResponse getStudyCount() {
-        return statsService.getStudyCount();
+    public ResponseEntity<ChartResponse> getStudyCount(@AuthenticationPrincipal JwtUserInfo principal) {
+        // 필요하다면 principal.getUserId(), principal.getRole() 활용 가능
+        ChartResponse response = statsService.getStudyCount();
+        return ResponseEntity.ok(response);
     }
 
     // 2) 카테고리 비율
     @GetMapping("/member-ratio")
-    public ChartResponse getMemberRatio() {
-        return statsService.getMemberRatio();
+    public ResponseEntity<ChartResponse> getMemberRatio(@AuthenticationPrincipal JwtUserInfo principal) {
+        ChartResponse response = statsService.getMemberRatio();
+        return ResponseEntity.ok(response);
     }
 
     // 3) 출석률
     @GetMapping("/attendance")
-    public ChartResponse getAttendanceStats() {
-        return statsService.getAttendanceStats();
+    public ResponseEntity<ChartResponse> getAttendanceStats(@AuthenticationPrincipal JwtUserInfo principal) {
+        ChartResponse response = statsService.getAttendanceStats();
+        return ResponseEntity.ok(response);
     }
 
-    // 4) 운영 대시보드 요약 정보임.
+    // 4) 운영 대시보드 요약 정보
     @GetMapping("/summary")
-    public StatsSummaryResponse getSummary() {
-        return statsService.getSummary();
+    public ResponseEntity<StatsSummaryResponse> getSummary(@AuthenticationPrincipal JwtUserInfo principal) {
+        StatsSummaryResponse response = statsService.getSummary();
+        return ResponseEntity.ok(response);
     }
-
 }

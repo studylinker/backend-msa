@@ -1,10 +1,7 @@
 server:
-  port: 10003 # TODO: 실제 환경에 맞게 조정 (auth/user-service와 겹치지 않게)
+  port: 10005
 
 spring:
-  application:
-    name: stats-service
-
   datasource:
     url: jdbc:mariadb://studydb.choiiq8m684g.ap-northeast-2.rds.amazonaws.com:3306/studydb
     username: studyuser
@@ -15,10 +12,12 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MariaDBDialect
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"

@@ -1,86 +1,97 @@
 package com.study.system.config;
 
 import com.study.common.security.JwtAuthenticationFilter;
-import com.study.service.security.CustomUserDetailsService;
+import com.study.common.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// ⭐ CORS 관련 import 추가
+// CORS 관련
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * system-service 보안 설정
+ * - JWT 기반 리소스 서버
+ * - /api/system/** 는 ADMIN 권한 필요
+ */
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService userDetailsService;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          CustomUserDetailsService userDetailsService) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.userDetailsService = userDetailsService;
-    }
+    // JWT 토큰 유틸 (common-security 쪽에 있다고 가정)
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * JwtAuthenticationFilter 빈을 직접 등록
+     */
     @Bean
-    public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return new ProviderManager(provider);
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider);
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // ⭐ CORS 먼저 켜주기
+                // CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // JWT 사용하므로 CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                // 세션 사용 안 함 (Stateless)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // 엔드포인트별 인가 규칙
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 로그인 / 회원가입
-                        .requestMatchers("/api/auth/tokens", "/api/users").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/stats/**").hasRole("ADMIN")
-                        // 🔐 그 외 모든 API는 "로그인만" 되어있으면 접근 가능
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        // 헬스 체크 & 루트 경로는 공개
+                        .requestMatchers("/", "/health", "/actuator/health", "/favicon.ico").permitAll()
+
+                        // 내부 서비스 간 호출용 (필요 시 사용)
+                        .requestMatchers("/internal/**").permitAll()
+
+                        // 시스템 운영용 API - ADMIN 전용
+                        .requestMatchers("/api/system/**").hasRole("ADMIN")
+
+                        // 나머지는 전부 막기
+                        .anyRequest().denyAll()
+                );
+
+        // 여기서 우리가 @Bean으로 만든 jwtAuthenticationFilter() 사용
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ⭐ CORS 설정 Bean
+    /**
+     * CORS 설정
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 프론트 주소 허용
+        // TODO: 실제 프론트 도메인으로 변경
         config.setAllowedOrigins(List.of("http://localhost:3000"));
-        // 필요한 메서드 허용
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // 요청에서 허용할 헤더
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        // 쿠키/인증정보 사용 시
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

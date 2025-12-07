@@ -1,6 +1,7 @@
 package com.study.system.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -10,18 +11,21 @@ import software.amazon.awssdk.services.rds.model.CreateDbSnapshotRequest;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SystemService {
 
-    // ✅ 리전과 RDS 인스턴스 ID만 필요
+    // ✅ 리전과 RDS 인스턴스 ID
     @Value("${aws.region}")
     private String region;
 
     @Value("${aws.rds-instance-id}")
     private String rdsInstanceId;
 
-    public void createBackup() {
+    /**
+     * RDS 스냅샷 백업 생성
+     */
+    public void createBackup(Long adminId) {
 
-        // ✅ IAM Role 자동 인식
         RdsClient rdsClient = RdsClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .region(Region.of(region))
@@ -36,13 +40,16 @@ public class SystemService {
 
         rdsClient.createDBSnapshot(request);
 
-        System.out.println("✅ AWS RDS Snapshot Created (IAM Role): " + snapshotId);
+        log.info("✅ AWS RDS Snapshot Created by adminId={} snapshotId={}", adminId, snapshotId);
 
         rdsClient.close();
     }
 
-    public void clearCache() {
+    /**
+     * 캐시 무효화
+     */
+    public void clearCache(Long adminId) {
         // TODO: Redis / CDN / LocalCache 등 연결 예정
-        System.out.println("✅ Cache cleared (IAM Role environment)");
+        log.info("✅ Cache cleared by adminId={}", adminId);
     }
 }
