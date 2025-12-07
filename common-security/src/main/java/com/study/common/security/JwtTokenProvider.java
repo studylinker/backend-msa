@@ -3,18 +3,16 @@ package com.study.common.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor; // 추가됨
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate; // 추가됨
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-import java.util.concurrent.TimeUnit; // 추가됨
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@RequiredArgsConstructor // 생성자 주입 자동화 (RedisTemplate 받기 위해)
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -22,8 +20,8 @@ public class JwtTokenProvider {
 
     private Key key;
 
-    // [수정 1] 메모리 Set 삭제 -> RedisTemplate 추가
-    private final StringRedisTemplate redisTemplate;
+    // 간단한 로그아웃(토큰 블랙리스트) 구현용
+    private final Set<String> invalidatedTokens = ConcurrentHashMap.newKeySet();
 
     private final long EXPIRATION_MS = 86400000L; // 1일
 
@@ -32,7 +30,7 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 토큰 생성 (변경 없음)
+    // 토큰 생성
     public String createToken(String username, String role, Long userId) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + EXPIRATION_MS);
@@ -49,9 +47,8 @@ public class JwtTokenProvider {
 
     // 토큰 검증
     public boolean validateToken(String token) {
-        // [수정 2] Redis에 있는지 확인 (있으면 로그아웃된 토큰)
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
-            return false; 
+        if (invalidatedTokens.contains(token)) {
+            return false;  // 로그아웃된 토큰
         }
 
         try {
@@ -65,26 +62,24 @@ public class JwtTokenProvider {
         }
     }
 
-    // ... getUsername, getUserId, getRole 등은 변경 없음 ...
+    // 토큰에서 username 추출
     public String getUsername(String token) {
         return getClaims(token).getSubject();
     }
 
+    // 토큰에서 userId 추출
     public Long getUserId(String token) {
         return getClaims(token).get("userId", Long.class);
     }
 
+    // 토큰에서 role 추출
     public String getRole(String token) {
         return getClaims(token).get("role", String.class);
     }
 
-    // [수정 3] 로그아웃: Redis에 남은 시간만큼만 저장 (자동 삭제됨)
+    // 로그아웃용: 토큰 블랙리스트에 추가
     public void invalidateToken(String token) {
-        long remainTime = getClaims(token).getExpiration().getTime() - System.currentTimeMillis();
-        
-        if (remainTime > 0) {
-            redisTemplate.opsForValue().set(token, "logout", remainTime, TimeUnit.MILLISECONDS);
-        }
+        invalidatedTokens.add(token);
     }
 
     private Claims getClaims(String token) {
