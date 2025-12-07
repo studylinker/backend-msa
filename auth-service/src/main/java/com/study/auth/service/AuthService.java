@@ -26,7 +26,7 @@ public class AuthService {
     /**
      * 로그인:
      *  - user-service의 /internal/auth/verify-login 으로 아이디/비번 보내서 검증
-     *  - 유효한 유저면 userId/username/role 받아서 JWT 생성
+     *  - 유효한 유저면 userId/username/role 받아서 JWT 생
      */
     public String login(String username, String password) {
 
