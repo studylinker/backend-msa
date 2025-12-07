@@ -7,18 +7,18 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * 카테고리 비율 통계 조회용 레포지토리
- * - Study_groups 테이블의 category 컬럼 기준으로 그룹화
+ * 출석 통계 조회용 레포지토리
+ * - Attendance 테이블의 status 컬럼 기준으로 그룹화
  */
 @Repository
-public class MemberRatioRepository {
+public class AttendanceStatsRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @SuppressWarnings("unchecked")
-    public List<Object[]> getCategoryRatio() {
-        String sql = "SELECT category, COUNT(*) FROM Study_groups GROUP BY category";
+    public List<Object[]> getAttendanceRatio() {
+        String sql = "SELECT status, COUNT(*) FROM Attendance GROUP BY status";
         return entityManager.createNativeQuery(sql).getResultList();
     }
 }

@@ -1,21 +1,31 @@
 package com.study.stats.repository;
 
-import com.study.studygroup.domain.StudyGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * 스터디 관련 통계 조회용 레포지토리
+ * - Study_groups 테이블 기준 월별 스터디 생성 수 집계
+ */
 @Repository
-public interface StudyStatsRepository extends JpaRepository<StudyGroup, Long> {
+public class StudyStatsRepository {
 
-    // 월별 스터디 생성 수
-    @Query(
-            value = "SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) " +
-                    "FROM Study_groups GROUP BY month ORDER BY month",
-            nativeQuery = true
-    )
-    List<Object[]> getMonthlyStudyCount();
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    /**
+     * 월별 스터디 생성 수 조회
+     * - 결과: [month(YYYY-MM), count]
+     */
+    @SuppressWarnings("unchecked")
+    public List<Object[]> getMonthlyStudyCount() {
+        String sql = "SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) " +
+                "FROM Study_groups " +
+                "GROUP BY month " +
+                "ORDER BY month";
+        return entityManager.createNativeQuery(sql).getResultList();
+    }
 }
-
