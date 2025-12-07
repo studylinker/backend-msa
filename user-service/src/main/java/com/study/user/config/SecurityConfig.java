@@ -30,6 +30,12 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider);
     }
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+    // "이 경로들은 필터고 뭐고 아예 검사하지 마라" (프리패스)
+    return (web) -> web.ignoring()
+            .requestMatchers("/actuator/**", "/health", "/favicon.ico");
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
