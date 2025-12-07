@@ -20,6 +20,3 @@ Thumbs.db
 
 ### 환경 설정 (필요시)
 *.env
-
-# ❌ Git 에서 제외할 서비스들
-study-service/
