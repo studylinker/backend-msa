@@ -1,0 +1,41 @@
+server:
+  port: 10003
+
+jwt:
+  secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
+  expiration: 3600000   # 1 hour
+
+spring:
+  datasource:
+    url: jdbc:mariadb://studydb.choiiq8m684g.ap-northeast-2.rds.amazonaws.com:3306/studydb
+    username: studyuser
+    password: 12200000
+    driver-class-name: org.mariadb.jdbc.Driver
+
+    # ⭐ HikariCP 커넥션 풀 설정 추가
+    hikari:
+      maximum-pool-size: 10       # 🔥 커넥션 풀 최대 10개 (MSA에서는 반드시 줄이기)
+      minimum-idle: 5
+      idle-timeout: 600000        # 10분
+      max-lifetime: 1800000       # 30분 (DB wait_timeout보다 작게 유지)
+      connection-timeout: 30000   # 커넥션 못 얻으면 30초 후 timeout
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    com.study.study: DEBUG
