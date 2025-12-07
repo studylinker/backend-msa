@@ -7,9 +7,6 @@ import com.study.study.studyschedule.dto.StudyScheduleRequest;
 import com.study.study.studyschedule.dto.StudyScheduleResponse;
 import com.study.study.studygroup.service.StudyGroupService;
 
-// 🟡 CustomUserDetails 제거
-// import com.study.service.security.CustomUserDetails;
-
 import com.study.common.security.JwtUserInfo; // 🟡 JwtUserInfo 추가
 
 import org.springframework.http.HttpStatus;
@@ -21,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class StudyGroupController {
+public class StudyGroupController { // 클래스 시작
 
     private final StudyGroupService service;
 
@@ -71,22 +68,32 @@ public class StudyGroupController {
     @PostMapping("/study-groups")
     public ResponseEntity<?> create(
             @RequestBody StudyGroupRequest request,
-            @AuthenticationPrincipal JwtUserInfo user // 🟡 JwtUserInfo 적용
+            @AuthenticationPrincipal JwtUserInfo user
     ) {
+        System.out.println("[StudyGroupController] POST /api/study-groups 호출됨");
         if (user == null) {
+            System.out.println("  - AuthenticationPrincipal = null (로그인 안 됨)");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("로그인이 필요합니다.");
         }
 
+        System.out.println("  - userId   : " + user.getUserId());
+        System.out.println("  - username : " + user.getUsername());
+        System.out.println("  - role     : " + user.getRole());
+
         try {
-            Long userId = user.getUserId(); // 🟡 JwtUserInfo 기반
+            Long userId = user.getUserId();
             StudyGroup created = service.createGroup(request, userId);
+
+            System.out.println("  - 그룹 생성 완료, groupId = " + created.getGroupId());
+
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(StudyGroupResponse.fromEntity(created));
         } catch (IllegalArgumentException e) {
+            System.out.println("  - IllegalArgumentException: " + e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
+    } // ⚠️ 기존 코드에서 이 위치에 불필요한 '}'가 있었습니다.
 
     // ============================
     // PUT /study-groups/{groupId}
