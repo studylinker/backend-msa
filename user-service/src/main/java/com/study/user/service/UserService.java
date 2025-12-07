@@ -31,7 +31,7 @@ public class UserService {
     }
 
     // ============================
-    // 전체 조회 (관리자용)
+    // 전체 조회 (관리자용).
     // ============================
     public List<User> findAll() {
         return userRepository.findAll();

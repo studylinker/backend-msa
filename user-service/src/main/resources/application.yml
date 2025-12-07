@@ -1,5 +1,5 @@
 server:
-  port: 10001
+  port: 10000
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
@@ -7,9 +7,9 @@ jwt:
 
 spring:
   datasource:
-    url: jdbc:mariadb://studydb.choiiq8m684g.ap-northeast-2.rds.amazonaws.com:3306/studydb
-    username: studyuser
-    password: 12200000
+    url: jdbc:mariadb://mariadb-primary.c3kkm2iwaeig.ap-northeast-2.rds.amazonaws.com:3306/studydb
+    username: admin
+    password: admin1234!
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:

@@ -24,6 +24,6 @@ public class MannerScoreService {
             case "violation_score" -> user.addViolationScore(amount);
             default -> throw new IllegalArgumentException("알 수 없는 매너 점수 항목: " + field);
         }
-        // @Transactional + JPA 영속성 컨텍스트 덕분에 별도 save() 안 해도 업데이트 반영됨
+        // @Transactional + JPA 영속성 컨텍스트 덕분에 별도 save() 안 해도 업데이트 반영
     }
 }

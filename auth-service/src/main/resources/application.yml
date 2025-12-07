@@ -2,7 +2,7 @@ server:
   port: 10000
 
 user-service:
-  base-url: http://localhost:10001
+  base-url: http://user-service:10000
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
