@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         scanBasePackages = {
                 "com.study.recommend",      // 현재 recommendation-service
                 "com.study.common.security", // JwtTokenProvider, Filter
-                "com.study.common.web"       // WebConfig 등
+                "com.study.common.web"       // WebConfig 
         }
 )
 public class RecommendServiceApplication {
