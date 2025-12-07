@@ -14,7 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 )
 @ComponentScan(basePackages = {
         "com.study.auth",      // auth-service 자기 패키지
-        "com.study.common"     // ✅ common-security, common-web 쪽까지 스캔함
+        "com.study.common"     // ✅ common-security, common-web 쪽까지 스캔함.
 })
 public class AuthServiceApplication {
 
