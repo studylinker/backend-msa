@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 시스템 운영(백업, 캐시 클리어 등) 컨트롤러
- * - /api/system/** 는 ADMIN 권한 필요
+ * - /api/system/** 는 ADMIN 권한 필요.
  */
 @RestController
 @RequestMapping("/api/system")
