@@ -14,7 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
-    // ✅ 오늘 가입한 사용자 수
+    // ✅ 오늘 가입한 사용자 수.
     @Query(value = "SELECT COUNT(*) FROM Users WHERE DATE(created_at) = CURDATE()", nativeQuery = true)
     long countNewUsersToday();
 }
