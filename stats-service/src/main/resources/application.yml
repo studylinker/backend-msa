@@ -7,11 +7,11 @@ spring:
     username: admin
     password: admin1234!
     driver-class-name: org.mariadb.jdbc.Driver
-    maximum-pool-size: 4      # 기본값 10은 너무 큽니다. 4~5로 줄이세요.
-    minimum-idle: 2           # 최소 유지 연결 수
-    idle-timeout: 30000       # 유휴 연결 반납 시간 단축
-    max-lifetime: 540000      # (옵션) 커넥션 갱신 주기
-
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+      idle-timeout: 30000
+      pool-name: stats-service-hikari
   jpa:
     open-in-view: false
     hibernate:
