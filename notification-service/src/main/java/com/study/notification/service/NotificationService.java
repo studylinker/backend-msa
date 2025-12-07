@@ -19,7 +19,7 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    // 🔹 유저 전체 알림 조회
+    // 🔹 유저 전체 알림 조회.
     @Transactional(readOnly = true)
     public List<NotificationResponse> findAllResponsesByUser(Long userId) {
         return notificationRepository
