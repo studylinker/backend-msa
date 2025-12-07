@@ -55,6 +55,11 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-actuator</artifactId>
+         </dependency>
+
     </dependencies>
 
     <!-- 🔥 실행가능 Jar 만들기 위한 Spring Boot Plugin -->
