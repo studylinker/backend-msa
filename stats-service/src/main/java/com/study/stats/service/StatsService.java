@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * 운영 대시보드 통계 서비스
  * - Users / Study_groups / Attendance 테이블을 대상으로 통계를 조회
- * - 다른 서비스 모듈(User, StudyGroup 등)에 직접 의존하지 않음
+ * - 다른 서비스 모듈(User, StudyGroup 등)에 직접 의존하지 않음.
  */
 @Service
 @RequiredArgsConstructor
