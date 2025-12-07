@@ -3,23 +3,18 @@ name: MSA Integrated Deploy
 on:
   push:
     branches: [ "main" ]
-    # paths 필터는 제거합니다. (내부 job에서 처리함)
 
 jobs:
-  # [JOB 1] 변경 감지 단계
+  # [JOB 1] 변경 감지 단계 (기존 유지)
   detect-changes:
     runs-on: ubuntu-latest
-    # 결과값(변경된 서비스 목록)을 다음 Job으로 넘겨줌
     outputs:
       matrix: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@v3
-      
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          # 여기서 감지 규칙을 정의합니다.
-          # common이 바뀌면 모든 서비스가 포함되도록 설정할 수도 있습니다.
           filters: |
             auth-service:
               - 'auth-service/**'
@@ -40,7 +35,7 @@ jobs:
             system-service:
               - 'system-service/**'
               - 'common-**/**'
-              - 'pom.xml'    
+              - 'pom.xml'     
             stats-service:
               - 'stats-service/**'
               - 'common-**/**'
@@ -53,13 +48,11 @@ jobs:
   # [JOB 2] 동적 배포 단계
   build-and-deploy:
     needs: detect-changes
-    # 변경된 서비스가 하나라도 있을 때만 실행
     if: ${{ needs.detect-changes.outputs.matrix != '[]' }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # 하나가 실패해도 나머지는 계속 진행
+      fail-fast: false
       matrix:
-        # JSON 배열로 넘어온 변경 목록(예: ['auth-service', 'user-service'])을 그대로 사용
         service: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
 
     steps:
@@ -74,8 +67,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      # 3. Maven 빌드 (동적 변수 사용 ✨)
-      # ${{ matrix.service }}가 'auth-service' 등으로 바뀝니다.
+      # 3. Maven 빌드
       - name: Build with Maven
         run: mvn clean package -pl ${{ matrix.service }} -am -DskipTests
 
@@ -91,38 +83,45 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Dockerfile  # 아까 만든 공용 Dockerfile 사용
+          file: ./Dockerfile
           push: true
-          # 태그명도 동적으로 생성
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
-          # 공용 Dockerfile에 서비스 이름 전달
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
 
-      # 6. Manifest Repo 업데이트
+      # 6. Manifest Repo 업데이트 (▼▼▼ 여기가 변경되었습니다 ▼▼▼)
       - name: Update Manifest
         env:
           GIT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
-          SERVICE: ${{ matrix.service }} # 환경변수로 저장해서 사용
+          SERVICE: ${{ matrix.service }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
+          # 1. Manifest Repo 클론
           git clone https://x-access-token:${GIT_TOKEN}@github.com/studylinker/manifest.git manifest-repo
           
-          # 경로를 동적으로 찾아갑니다.
-          cd manifest-repo/apps/${SERVICE}
+          # 2. 루트 디렉토리 이동 (구조가 바뀌었으므로 특정 앱 폴더로 이동하지 않습니다)
+          cd manifest-repo
           
-          echo "Updating manifest for ${SERVICE}..."
+          echo "Updating manifest for ${SERVICE} to tag ${IMAGE_TAG}..."
           
-          # Deployment 이미지 태그 수정
-          sed -i "s|image: .*|image: ${DOCKER_USER}/${SERVICE}:${{ github.sha }}|g" deployment.yaml
+          # 3. yq를 사용하여 charts/root-app/values.yaml 수정
+          # 해석: microservices 리스트 중 name이 현재 SERVICE와 같은 항목을 찾아 tag를 교체한다.
+          yq -i "(.microservices[] | select(.name == \"${SERVICE}\")).tag = \"${IMAGE_TAG}\"" charts/root-app/values.yaml
           
+          # (디버깅용) 변경 내용 확인
+          cat charts/root-app/values.yaml | grep ${SERVICE} -A 5
+          
+          # 4. Git 설정 및 푸시
           git config user.name "CI Bot"
           git config user.email "ci@bot.com"
           
           if [[ -n $(git status -s) ]]; then
-            git add .
-            git commit -m "Update ${SERVICE} image to ${{ github.sha }}"
-            git push
+            git add charts/root-app/values.yaml
+            git commit -m "Update ${SERVICE} image to ${IMAGE_TAG}"
+            
+            # [중요] Matrix로 인해 여러 job이 동시에 push할 수 있으므로 rebase 적용
+            git pull --rebase origin main
+            git push origin main
           else
             echo "No changes to commit for ${SERVICE}"
           fi
