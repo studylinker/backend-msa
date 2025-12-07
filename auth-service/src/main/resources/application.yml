@@ -1,6 +1,11 @@
 server:
   port: 10000
-
+  
+spring:
+  data:
+    redis:
+      host: my-redis-master.redis.svc.cluster.local
+      port: 6379
 user-service:
   base-url: http://user-service:10000
   
