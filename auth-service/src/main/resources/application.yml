@@ -6,6 +6,7 @@ spring:
     redis:
       host: my-redis-master.redis.svc.cluster.local
       port: 6379
+      password: mysecurepassword
 user-service:
   base-url: http://user-service:10000
   
