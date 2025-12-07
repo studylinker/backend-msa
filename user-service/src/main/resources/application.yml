@@ -8,8 +8,8 @@ jwt:
 spring:
   datasource:
     url: jdbc:mariadb://mariadb-primary.c3kkm2iwaeig.ap-northeast-2.rds.amazonaws.com:3306/studydb?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: studyuser
-    password: 12200000
+    username: admin
+    password: admin1234!
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
