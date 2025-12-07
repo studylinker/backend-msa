@@ -45,6 +45,10 @@ jobs:
               - 'stats-service/**'
               - 'common-**/**'
               - 'pom.xml' 
+            study-service:
+              - 'study-service/**'
+              - 'common-**/**'
+              - 'pom.xml' 
 
   # [JOB 2] 동적 배포 단계
   build-and-deploy:
