@@ -41,7 +41,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // TODO: 배포 시 실제 프론트 주소로 교체
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("http://gachon.studylink.click"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
@@ -63,6 +63,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 🔥 auth-service에서 호출하는 내부 로그인 검증 API → 무조건 허용
                         .requestMatchers("/internal/auth/**").permitAll()
+                        .requestMatchers("/actuator/health", "/health","/").permitAll()
 
                         // 🔥 회원가입은 누구나 가능
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
