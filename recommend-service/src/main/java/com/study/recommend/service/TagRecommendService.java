@@ -82,7 +82,7 @@ public class TagRecommendService {
                 .limit(limit)
                 .toList();
 
-        // 5. 래퍼 DTO 반환
+        // 5. 래퍼 DTO 반환.
         return TagRecommendResponse.builder()
                 .criteria(RecommendCriteria.TAG_LOCATION)
                 .radiusKm(radiusKm)
