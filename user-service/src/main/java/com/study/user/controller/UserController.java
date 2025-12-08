@@ -88,38 +88,34 @@ public class UserController {
     // ============================================================
     // 내가 가입한 스터디 그룹 조회 (MSA 분리 전 기능 → 유지 but 주석만)
     // ============================================================
-    //
-    // @GetMapping("/{userId}/groups")
-    // public ResponseEntity<?> getJoinedGroups(
-    //         @PathVariable Long userId,
-    //         @AuthenticationPrincipal JwtUserInfo user
-    // ) {
-    //     if (user == null) {
-    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-    //                 .body("로그인이 필요합니다.");
-    //     }
-    //
-    //     Long tokenUserId = user.getUserId();
-    //
-    //     if (!userId.equals(tokenUserId)) {
-    //         System.out.println("⚠ Path userId != Token userId → 토큰 기준으로 조회");
-    //     }
-    //
-    //     List<StudyGroup> groups = studyGroupService.findJoinedGroups(tokenUserId);
-    //
-    //     var response = groups.stream()
-    //             .map(g -> new java.util.HashMap<String, Object>() {{
-    //                 put("groupId", g.getGroupId());
-    //                 put("title", g.getTitle());
-    //                 put("description", g.getDescription());
-    //                 put("status", g.getStatus().name());
-    //                 put("leaderId", g.getLeader().getUserId());
-    //                 put("leaderName", g.getLeader().getName());
-    //             }}).toList();
-    //
-    //     return ResponseEntity.ok(response);
-    // }
-    //
-    // ============================================================
+    @GetMapping("/{userId}/groups")
+    public ResponseEntity<?> getJoinedGroups(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal JwtUserInfo user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
 
+        Long tokenUserId = user.getUserId();
+
+        if (!userId.equals(tokenUserId)) {
+            System.out.println("⚠ Path userId != Token userId → 토큰 기준으로 조회");
+        }
+
+        List<StudyGroup> groups = studyGroupService.findJoinedGroups(tokenUserId);
+
+        var response = groups.stream()
+                .map(g -> new HashMap<String, Object>() {{
+                    put("groupId", g.getGroupId());
+                    put("title", g.getTitle());
+                    put("description", g.getDescription());
+                    put("status", g.getStatus().name());
+                    put("leaderId", g.getLeader().getUserId());
+                    put("leaderName", g.getLeader().getName());
+                }}).toList();
+
+        return ResponseEntity.ok(response);
+    }
 }
