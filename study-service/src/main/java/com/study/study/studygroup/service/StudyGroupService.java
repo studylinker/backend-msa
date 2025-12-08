@@ -13,6 +13,8 @@ import com.study.study.studygroup.domain.StudyGroup;
 import com.study.study.studygroup.dto.NotificationSendRequest;
 import com.study.study.studygroup.dto.StudyGroupRequest;
 import com.study.study.studygroup.repository.StudyGroupRepository;
+import com.study.study.userclient.UserClient;
+import com.study.study.userclient.dto.UserSummary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -27,19 +29,23 @@ public class StudyGroupService {
     private final StudyGroupRepository groupRepository;
     private final GroupMemberRepository memberRepository;
     private final StudyScheduleRepository scheduleRepository;
+    private final UserClient userClient;   // 🔹 user-service 호출용
 
-    // 🔹 notification-service 호출용 RestTemplate
+    // 🔹 notification-service 호출용 RestTemplate (기존 그대로 사용)
     private final RestTemplate notificationClient = new RestTemplate();
+
     private static final String NOTIFICATION_BASE_URL = "http://notification-service:10000";
 
     public StudyGroupService(
             StudyGroupRepository groupRepository,
             GroupMemberRepository memberRepository,
-            StudyScheduleRepository scheduleRepository
+            StudyScheduleRepository scheduleRepository,
+            UserClient userClient
     ) {
         this.groupRepository = groupRepository;
         this.memberRepository = memberRepository;
         this.scheduleRepository = scheduleRepository;
+        this.userClient = userClient;
     }
 
     // ===========================
@@ -58,9 +64,28 @@ public class StudyGroupService {
                     Void.class
             );
         } catch (Exception e) {
-            // 알림 서버 죽어 있어도 스터디 기능은 돌아가게 로그만 남김
             System.out.println("⚠ notification-service 호출 실패: " + e.getMessage());
         }
+    }
+
+    // ===========================
+    // 🔹 GroupMember → Response + 유저 정보 채우기
+    // ===========================
+    private GroupMemberResponse toMemberResponseWithUser(GroupMember member) {
+        GroupMemberResponse dto = GroupMemberResponse.fromEntity(member);
+
+        try {
+            UserSummary user = userClient.getUserById(member.getUserId());
+            if (user != null) {
+                dto.setUsername(user.getUsername());
+                dto.setName(user.getName());
+            }
+        } catch (Exception e) {
+            System.out.println("⚠ user-service 호출 실패 userId=" +
+                    member.getUserId() + " : " + e.getMessage());
+        }
+
+        return dto;
     }
 
     // ===========================
@@ -192,7 +217,7 @@ public class StudyGroupService {
 
         return memberRepository.findByGroupId(groupId)
                 .stream()
-                .map(GroupMemberResponse::fromEntity)
+                .map(this::toMemberResponseWithUser)   // 🔹 이름/아이디 채워서 반환
                 .toList();
     }
 
@@ -202,7 +227,7 @@ public class StudyGroupService {
     public GroupMemberResponse getGroupMember(Long groupId, Long userId) {
         GroupMember member = memberRepository.findByGroupIdAndUserId(groupId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버가 존재하지 않습니다."));
-        return GroupMemberResponse.fromEntity(member);
+        return toMemberResponseWithUser(member);       // 🔹 변경
     }
 
     // ===========================
@@ -211,7 +236,7 @@ public class StudyGroupService {
     public GroupMemberResponse getGroupLeader(Long groupId) {
         GroupMember leader = memberRepository.findByGroupIdAndRole(groupId, GroupMember.Role.LEADER)
                 .orElseThrow(() -> new IllegalArgumentException("리더가 존재하지 않습니다."));
-        return GroupMemberResponse.fromEntity(leader);
+        return toMemberResponseWithUser(leader);       // 🔹 변경
     }
 
     // ===========================
@@ -241,7 +266,7 @@ public class StudyGroupService {
                 "REQUEST"
         );
 
-        return GroupMemberResponse.fromEntity(saved);
+        return toMemberResponseWithUser(saved);        // 🔹 변경 (원하면 여기도 이름 채워줌)
     }
 
     // ===========================
@@ -317,7 +342,7 @@ public class StudyGroupService {
         }
 
         StudySchedule schedule = new StudySchedule();
-        schedule.setGroupId(groupId);  // 🔹 setGroup(...) 대신 groupId 사용
+        schedule.setGroupId(groupId);
         schedule.setUserId(leaderId);
         schedule.setTitle(request.getTitle());
         schedule.setDescription(request.getDescription());
@@ -328,7 +353,6 @@ public class StudyGroupService {
 
         StudySchedule saved = scheduleRepository.save(schedule);
 
-        // 그룹 전체 멤버에게 일정 생성 알림
         List<Long> members = memberRepository.findByGroupId(groupId)
                 .stream()
                 .map(GroupMember::getUserId)

@@ -12,13 +12,12 @@ spring:
     password: admin1234!
     driver-class-name: org.mariadb.jdbc.Driver
 
-    # ⭐ HikariCP 커넥션 풀 설정 추가
     hikari:
-      maximum-pool-size: 10       # 🔥 커넥션 풀 최대 10개 (MSA에서는 반드시 줄이기!
+      maximum-pool-size: 10
       minimum-idle: 5
-      idle-timeout: 600000        # 10분
-      max-lifetime: 1800000       # 30분 (DB wait_timeout보다 작게 유지)
-      connection-timeout: 30000   # 커넥션 못 얻으면 30초 후 timeout
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
 
   jpa:
     open-in-view: false
@@ -39,3 +38,9 @@ logging:
   level:
     root: INFO
     com.study.study: DEBUG
+
+# 🔹 user-service 호출용 설정 (study-service → user-service)
+user-service:
+  # 같은 클러스터 안이면 서비스 이름으로 호출하는 게 정석
+  base-url: http://user-service:10000
+  # (외부에서 테스트할 땐 nodePort 쓰고 싶으면 http://<노드IP>:30557 로 바꿔도 됨)

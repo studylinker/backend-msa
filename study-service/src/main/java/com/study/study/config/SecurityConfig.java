@@ -35,36 +35,31 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // CSRF 비활성화 (JWT 기반)
                 .csrf(csrf -> csrf.disable())
-
-                // 세션 없음
                 .sessionManagement(s ->
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // 권한 규칙 설정
                 .authorizeHttpRequests(auth -> auth
 
-                        // 일반 공개 엔드포인트
+                        // 1) 헬스체크는 항상 허용
                         .requestMatchers("/", "/health", "/actuator/health").permitAll()
 
-                        // 로그인, 회원가입은 공개
+                        // 2) 로그인, 회원가입 공개
                         .requestMatchers("/api/auth/tokens", "/api/users").permitAll()
 
-                        // ADMIN 엔드포인트
+                        // ⭐ 3) 내부 통신용 엔드포인트는 무조건 허용
+                        .requestMatchers("/internal/study/**").permitAll()
+
+                        // 4) ADMIN 전용
                         .requestMatchers("/api/admin/**", "/api/stats/**").hasRole("ADMIN")
 
-                        // 그 외 모든 /api/** 는 JWT 필요
+                        // 5) 그 외 /api/** 는 JWT 필요
                         .requestMatchers("/api/**").authenticated()
 
+                        // 6) 나머지 전부 인증 필요
                         .anyRequest().authenticated()
                 )
-
-                // ⭐ JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
