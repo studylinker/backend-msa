@@ -49,7 +49,7 @@ public class AuthService {
 
         UserLoginVerifyResponse user = response.getBody();
 
-        // 3) user-service가 검증한 유저 정보로 JWT 발급
+        // 3) user-service가 검증한 유저 정보로 JWT 발급.
         return jwtTokenProvider.createToken(
                 user.getUsername(),
                 user.getRole(),
