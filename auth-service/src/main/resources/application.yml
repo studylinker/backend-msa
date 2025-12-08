@@ -11,10 +11,10 @@ jwt:
   expiration: 3600000
 
 
-logging:
-  level:
-    # [핵심] 스프링 웹 처리 과정을 전부 찍어봄
-    org.springframework.web: DEBUG
-    org.springframework.web.servlet.DispatcherServlet: DEBUG
-    # 컨트롤러 매핑 과정을 상세히 확인 (어떤 URL이 어떤 메서드랑 연결되는지)
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
+# logging:
+#   level:
+#     # [핵심] 스프링 웹 처리 과정을 전부 찍어봄
+#     org.springframework.web: DEBUG
+#     org.springframework.web.servlet.DispatcherServlet: DEBUG
+#     # 컨트롤러 매핑 과정을 상세히 확인 (어떤 URL이 어떤 메서드랑 연결되는지)
+#     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
