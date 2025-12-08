@@ -24,7 +24,7 @@ public class GroupMemberService {
     private boolean isLeader(Long groupId, Long requesterId) {
 
         // 같은 서비스이므로 10003
-        String url = "http://localhost:10003/api/study-groups/" + groupId + "/leader";
+        String url = "http://study-service:10000/api/study-groups/" + groupId + "/leader";
 
         try {
             LeaderDTO leader = rt.getForObject(url, LeaderDTO.class);
@@ -38,7 +38,7 @@ public class GroupMemberService {
     // 🔥 user-service API (Authorization 헤더 포함)
     // ================================
     private UserDTO getUser(Long userId, String authHeader) {
-        String url = "http://localhost:10001/api/users/" + userId;
+        String url = "http://user-service:10000/api/users/" + userId;
 
         HttpHeaders headers = new HttpHeaders();
         if (authHeader != null && !authHeader.isBlank()) {

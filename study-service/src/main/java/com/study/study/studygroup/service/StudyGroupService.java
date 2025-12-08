@@ -30,7 +30,7 @@ public class StudyGroupService {
 
     // 🔹 notification-service 호출용 RestTemplate
     private final RestTemplate notificationClient = new RestTemplate();
-    private static final String NOTIFICATION_BASE_URL = "http://localhost:10004";
+    private static final String NOTIFICATION_BASE_URL = "http://notification-service:10000";
 
     public StudyGroupService(
             StudyGroupRepository groupRepository,

@@ -19,9 +19,8 @@ public class AdminNotificationController {
     private final UserRepository userRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // MSA 환경에서 notification-service 주소
-    // (지금 로컬 개발 기준: 10004 포트 사용)
-    private static final String NOTIFICATION_BASE_URL = "http://localhost:10004";
+    // 서버 환경에서 notification-service 주소
+    private static final String NOTIFICATION_BASE_URL = "http://notification-service:10000";
 
     public AdminNotificationController(UserRepository userRepository) {
         this.userRepository = userRepository;
