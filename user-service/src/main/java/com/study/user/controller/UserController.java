@@ -1,6 +1,7 @@
 package com.study.user.controller;
 
 import com.study.common.security.JwtUserInfo;
+import com.study.user.client.StudyGroupClient;
 import com.study.user.dto.UserRequest;
 import com.study.user.dto.UserResponse;
 import com.study.user.service.UserService;
@@ -10,16 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.study.user.studygroup.domain.StudyGroup;
-import com.study.user.studygroup.service.StudyGroupService;
-
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService service;
-    // private final StudyGroupService studyGroupService;  // MSA 분리로 주석 처리
+    private final StudyGroupClient studyGroupClient;  // ✅ 이제 이걸 DI
 
     // ============================================================
     // 🔥 프론트 유지: GET /api/users/profile (내 프로필 조회)
@@ -36,7 +34,6 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
-
     // ============================================================
     // 회원가입 - POST /api/users
     // ============================================================
@@ -45,7 +42,6 @@ public class UserController {
         UserResponse created = service.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-
 
     // ============================================================
     // 회원 정보 수정 - PUT /api/users/{userId}
@@ -65,7 +61,6 @@ public class UserController {
         return ResponseEntity.ok(service.update(userId, request));
     }
 
-
     // ============================================================
     // 회원 삭제 - DELETE /api/users/{userId}
     // ============================================================
@@ -84,9 +79,9 @@ public class UserController {
         return ResponseEntity.ok("계정이 삭제되었습니다.");
     }
 
-
     // ============================================================
-    // 내가 가입한 스터디 그룹 조회 (MSA 분리 전 기능 → 유지 but 주석만)
+    // ✅ 내가 가입한 스터디 그룹 조회 (study-service REST 호출)
+    //    GET /api/users/{userId}/groups
     // ============================================================
     @GetMapping("/{userId}/groups")
     public ResponseEntity<?> getJoinedGroups(
@@ -104,6 +99,7 @@ public class UserController {
             System.out.println("⚠ Path userId != Token userId → 토큰 기준으로 조회");
         }
 
+        // 🔥 실제 데이터는 study-service에서 가져옴
         Object[] groups = studyGroupClient.getJoinedGroups(tokenUserId);
 
         return ResponseEntity.ok(groups);

@@ -12,7 +12,11 @@ public class InternalStudyController {
 
     private final StudyGroupService studyGroupService;
 
-    @GetMapping("/groups/{userId}")
+    /**
+     * user-service가 호출하는 내부 전용 API
+     * GET /internal/study/users/{userId}/groups
+     */
+    @GetMapping("/users/{userId}/groups")
     public ResponseEntity<?> getUserGroups(@PathVariable Long userId) {
         return ResponseEntity.ok(studyGroupService.findJoinedGroups(userId));
     }
