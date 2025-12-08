@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-// import com.study.user.studygroup.domain.StudyGroup;
-// import com.study.user.studygroup.service.StudyGroupService;
+import com.study.user.studygroup.domain.StudyGroup;
+import com.study.user.studygroup.service.StudyGroupService;
 
 @RestController
 @RequestMapping("/api/users")
@@ -104,18 +104,8 @@ public class UserController {
             System.out.println("⚠ Path userId != Token userId → 토큰 기준으로 조회");
         }
 
-        List<StudyGroup> groups = studyGroupService.findJoinedGroups(tokenUserId);
+        Object[] groups = studyGroupClient.getJoinedGroups(tokenUserId);
 
-        var response = groups.stream()
-                .map(g -> new HashMap<String, Object>() {{
-                    put("groupId", g.getGroupId());
-                    put("title", g.getTitle());
-                    put("description", g.getDescription());
-                    put("status", g.getStatus().name());
-                    put("leaderId", g.getLeader().getUserId());
-                    put("leaderName", g.getLeader().getName());
-                }}).toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(groups);
     }
 }
