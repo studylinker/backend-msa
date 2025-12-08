@@ -19,11 +19,10 @@ public class GroupMemberService {
     }
 
     // ================================
-    // 🔥 그룹 리더 여부 확인 (group-service = SAME PORT 10003)
+    // 🔥 그룹 리더 여부 확인
     // ================================
     private boolean isLeader(Long groupId, Long requesterId) {
 
-        // 같은 서비스이므로 10003
         String url = "http://study-service:10000/api/study-groups/" + groupId + "/leader";
 
         try {

@@ -13,8 +13,11 @@ import com.study.study.studygroup.domain.StudyGroup;
 import com.study.study.studygroup.dto.NotificationSendRequest;
 import com.study.study.studygroup.dto.StudyGroupRequest;
 import com.study.study.studygroup.repository.StudyGroupRepository;
+
+// ✅ [추가] user-service 호출용 Client/DTO
 import com.study.study.userclient.UserClient;
 import com.study.study.userclient.dto.UserSummary;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -29,6 +32,8 @@ public class StudyGroupService {
     private final StudyGroupRepository groupRepository;
     private final GroupMemberRepository memberRepository;
     private final StudyScheduleRepository scheduleRepository;
+
+    // ✅ [추가] user-service 호출용 필드
     private final UserClient userClient;   // 🔹 user-service 호출용
 
     // 🔹 notification-service 호출용 RestTemplate (기존 그대로 사용)
@@ -40,12 +45,12 @@ public class StudyGroupService {
             StudyGroupRepository groupRepository,
             GroupMemberRepository memberRepository,
             StudyScheduleRepository scheduleRepository,
-            UserClient userClient
+            UserClient userClient              // ✅ [추가] 생성자 주입
     ) {
         this.groupRepository = groupRepository;
         this.memberRepository = memberRepository;
         this.scheduleRepository = scheduleRepository;
-        this.userClient = userClient;
+        this.userClient = userClient;       // ✅ [추가] 필드에 할당
     }
 
     // ===========================
@@ -71,6 +76,7 @@ public class StudyGroupService {
     // ===========================
     // 🔹 GroupMember → Response + 유저 정보 채우기
     // ===========================
+    // ✅ [추가] user-service 를 호출해서 username / name 을 세팅하는 헬퍼 메서드
     private GroupMemberResponse toMemberResponseWithUser(GroupMember member) {
         GroupMemberResponse dto = GroupMemberResponse.fromEntity(member);
 
@@ -215,6 +221,7 @@ public class StudyGroupService {
             throw new SecurityException("해당 그룹의 리더만 멤버 목록을 조회할 수 있습니다.");
         }
 
+        // ✅ [변경] 단순 fromEntity() → user 정보까지 채워주는 헬퍼 사용
         return memberRepository.findByGroupId(groupId)
                 .stream()
                 .map(this::toMemberResponseWithUser)   // 🔹 이름/아이디 채워서 반환
@@ -227,6 +234,8 @@ public class StudyGroupService {
     public GroupMemberResponse getGroupMember(Long groupId, Long userId) {
         GroupMember member = memberRepository.findByGroupIdAndUserId(groupId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버가 존재하지 않습니다."));
+
+        // ✅ [변경] user 정보까지 포함된 DTO 반환
         return toMemberResponseWithUser(member);       // 🔹 변경
     }
 
@@ -236,6 +245,8 @@ public class StudyGroupService {
     public GroupMemberResponse getGroupLeader(Long groupId) {
         GroupMember leader = memberRepository.findByGroupIdAndRole(groupId, GroupMember.Role.LEADER)
                 .orElseThrow(() -> new IllegalArgumentException("리더가 존재하지 않습니다."));
+
+        // ✅ [변경] user 정보까지 포함된 DTO 반환
         return toMemberResponseWithUser(leader);       // 🔹 변경
     }
 
@@ -266,6 +277,7 @@ public class StudyGroupService {
                 "REQUEST"
         );
 
+        // ✅ [변경] 반환 DTO에도 username/name 채워서 리턴
         return toMemberResponseWithUser(saved);        // 🔹 변경 (원하면 여기도 이름 채워줌)
     }
 
