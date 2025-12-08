@@ -76,6 +76,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/internal/auth/**").permitAll()
+                        .requestMatchers("/internal/users/**").permitAll()   // ← ★ 추가!!
                         .requestMatchers("/actuator/health", "/health", "/").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .anyRequest().authenticated()
