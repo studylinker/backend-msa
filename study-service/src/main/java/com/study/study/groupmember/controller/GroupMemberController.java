@@ -67,7 +67,7 @@ public class GroupMemberController {
             Long requesterId = currentUser.getUserId();
             boolean admin = isAdmin(currentUser);
 
-            // ✅ 리더 또는 관리자만 멤버 삭제 가능
+            // 🔥 리더 또는 관리자만 삭제 가능
             service.deleteByIdAsAdmin(memberId, requesterId, admin);
 
             return ResponseEntity.ok("멤버가 삭제되었습니다.");
@@ -78,15 +78,5 @@ public class GroupMemberController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-    }
-
-    /**
-     * 현재 로그인 유저가 관리자 권한인지 체크하는 헬퍼 메서드
-     */
-    private boolean isAdmin(JwtUserInfo user) {
-        if (user == null) return false;
-        return user.isAdmin();
-        // 또는 role 기반이라면 예:
-        // return "ADMIN".equals(user.getRole());
     }
 }

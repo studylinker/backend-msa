@@ -3,6 +3,8 @@ package com.study.study.groupmember.service;
 import com.study.study.groupmember.domain.GroupMember;
 import com.study.study.groupmember.dto.GroupMemberResponse;
 import com.study.study.groupmember.repository.GroupMemberRepository;
+import com.study.study.studygroup.domain.StudyGroup;
+import com.study.study.studygroup.repository.StudyGroupRepository;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,44 +14,34 @@ import org.springframework.web.client.RestTemplate;
 public class GroupMemberService {
 
     private final GroupMemberRepository repository;
-    private final RestTemplate rt = new RestTemplate();
+    private final StudyGroupRepository studyGroupRepository; // 🔥 leader_id 조회용
+    private final RestTemplate rt; // user-service 호출용 (필요하면 사용)
 
-    public GroupMemberService(GroupMemberRepository repository) {
+    public GroupMemberService(GroupMemberRepository repository,
+                              StudyGroupRepository studyGroupRepository,
+                              RestTemplate rt) {
         this.repository = repository;
+        this.studyGroupRepository = studyGroupRepository;
+        this.rt = rt;
     }
 
     // ================================
-    // 🔥 그룹 리더 여부 확인 (study-service 호출)
+    // 🔥 그룹 리더 여부 확인 (Study_groups.leader_id 기반)
     // ================================
     private boolean isLeader(Long groupId, Long requesterId) {
 
-        String url = "http://study-service:10000/api/study-groups/" + groupId + "/leader";
+        StudyGroup group = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "스터디 그룹을 찾을 수 없습니다. groupId=" + groupId));
 
-        try {
-            LeaderDTO leader = rt.getForObject(url, LeaderDTO.class);
-            return leader != null && leader.getUserId().equals(requesterId);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("그룹 리더 정보를 조회할 수 없습니다.");
-        }
-    }
+        Long leaderId = group.getLeaderId();
 
-    // ================================
-    // 🔥 user-service API (Authorization 헤더 포함)
-    // ================================
-    private UserDTO getUser(Long userId, String authHeader) {
-        String url = "http://user-service:10000/api/users/" + userId;
-
-        HttpHeaders headers = new HttpHeaders();
-        if (authHeader != null && !authHeader.isBlank()) {
-            headers.set("Authorization", authHeader);
+        if (leaderId == null) {
+            System.out.println("[WARN] groupId=" + groupId + " 의 leader_id 가 null입니다.");
+            return false;
         }
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<UserDTO> response =
-                rt.exchange(url, HttpMethod.GET, entity, UserDTO.class);
-
-        return response.getBody();
+        return leaderId.equals(requesterId);
     }
 
     // ================================
@@ -70,20 +62,7 @@ public class GroupMemberService {
 
         member.setStatus(GroupMember.Status.valueOf(newStatus));
 
-        GroupMemberResponse res = GroupMemberResponse.fromEntity(member);
-
-        // user-service 호출
-        try {
-            UserDTO user = getUser(member.getUserId(), authHeader);
-            if (user != null) {
-                res.setUsername(user.getUsername());
-                res.setName(user.getName());
-            }
-        } catch (Exception e) {
-            System.out.println("[WARN] user-service 호출 실패: " + e.getMessage());
-        }
-
-        return res;
+        return GroupMemberResponse.fromEntity(member);
     }
 
     // ================================
@@ -97,7 +76,7 @@ public class GroupMemberService {
 
         Long groupId = member.getGroupId();
 
-        // 🔥 study-service 호출을 이용해 리더 체크
+        // 🔥 DB 기반 리더 체크
         boolean leader = isLeader(groupId, requesterId);
 
         // 🔐 관리자도 아니고, 리더도 아니면 강퇴 불가
@@ -105,27 +84,11 @@ public class GroupMemberService {
             throw new SecurityException("리더 또는 관리자만 멤버를 삭제할 수 있습니다.");
         }
 
-        // 🔐 리더를 본인이 강퇴하려는 경우 방지 (선택)
+        // 🔐 리더가 자기 자신 강퇴 방지
         if (leader && requesterId.equals(member.getUserId())) {
             throw new SecurityException("리더는 자기 자신을 강퇴할 수 없습니다.");
         }
 
         repository.delete(member);
-    }
-
-    // DTO 내부 클래스
-    public static class UserDTO {
-        private Long userId;
-        private String username;
-        private String name;
-
-        public Long getUserId() { return userId; }
-        public String getUsername() { return username; }
-        public String getName() { return name; }
-    }
-
-    public static class LeaderDTO {
-        private Long userId;
-        public Long getUserId() { return userId; }
     }
 }
