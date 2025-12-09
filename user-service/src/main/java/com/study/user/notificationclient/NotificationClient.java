@@ -33,6 +33,7 @@ public class NotificationClient {
 
         // 🔥 내부 호출용 ADMIN JWT 생성
         String internalJwt = createInternalAdminToken();
+        System.out.println(">>> INTERNAL JWT = [" + internalJwt + "]");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
