@@ -5,11 +5,17 @@ import com.study.stats.dto.ChartResponse;
 import com.study.stats.dto.StatsSummaryResponse;
 import com.study.stats.service.StatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * 운영 대시보드 통계 조회 컨트롤러
@@ -25,7 +31,6 @@ public class StatsController {
     // 1) 스터디 생성 수 (월별)
     @GetMapping("/study-count")
     public ResponseEntity<ChartResponse> getStudyCount(@AuthenticationPrincipal JwtUserInfo principal) {
-        // 필요하다면 principal.getUserId(), principal.getRole() 활용 가능
         ChartResponse response = statsService.getStudyCount();
         return ResponseEntity.ok(response);
     }
@@ -49,5 +54,22 @@ public class StatsController {
     public ResponseEntity<StatsSummaryResponse> getSummary(@AuthenticationPrincipal JwtUserInfo principal) {
         StatsSummaryResponse response = statsService.getSummary();
         return ResponseEntity.ok(response);
+    }
+
+    // 5) CSV 내보내기
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportStatsCsv(@AuthenticationPrincipal JwtUserInfo principal) {
+
+        String csv = statsService.generateCsv();
+
+        ByteArrayResource resource =
+                new ByteArrayResource(csv.getBytes(StandardCharsets.UTF_8));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=stats.csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .contentLength(resource.contentLength())
+                .body(resource);
     }
 }

@@ -55,7 +55,7 @@ public class StatsService {
         if (users == null || users.length == 0) {
             return new ChartResponse(
                     List.of("데이터 없음"),
-                    List.of(0)
+                    List.of(0L)
             );
         }
 
@@ -72,9 +72,11 @@ public class StatsService {
         }
 
         List<String> labels = new ArrayList<>(countMap.keySet());
-        List<Integer> data = labels.stream()
-                .map(countMap::get)
+
+        List<Long> data = labels.stream()
+                .map(label -> countMap.get(label).longValue())
                 .collect(Collectors.toList());
+
 
         return new ChartResponse(labels, data);
     }
@@ -111,4 +113,16 @@ public class StatsService {
                 newSignupsToday
         );
     }
+
+    public String generateCsv() {
+        long totalUsers = summaryStatsRepository.countTotalUsers();
+        long activeStudies = summaryStatsRepository.countActiveStudies();
+        long newUsersToday = summaryStatsRepository.countNewUsersToday();
+
+        return "항목,값\n" +
+                "총 회원," + totalUsers + "\n" +
+                "활성 스터디," + activeStudies + "\n" +
+                "오늘 가입," + newUsersToday + "\n";
+    }
+
 }

@@ -37,16 +37,4 @@ public class InternalUserController {
         return ResponseEntity.ok(dto);
     }
 
-    // ==========================
-    // 🔥 신규 추가: 통계 서비스용 전체 유저 + 카테고리 조회
-    // ==========================
-    @GetMapping("/stats")
-    public List<UserStatDTO> getUserStats() {
-        return userRepository.findAll().stream()
-                .map(u -> new UserStatDTO(
-                        u.getUserId(),
-                        u.getCategories()   // ★ 반드시 User 엔티티에 categories 필드 있어야 함
-                ))
-                .toList();
-    }
 }
