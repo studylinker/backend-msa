@@ -192,7 +192,7 @@ public class StudyGroupService {
     // ===========================
     // 그룹 상태 변경
     // ===========================
-    @Transactional
+    @Transactional(readOnly = false)
     public void updateStatus(Long groupId, String newStatus, Long requesterId, boolean isAdmin) {
 
         StudyGroup group = findById(groupId);
@@ -207,7 +207,11 @@ public class StudyGroupService {
 
         GroupStatus statusEnum = GroupStatus.valueOf(newStatus.trim().toUpperCase());
         group.setStatus(statusEnum);
+
+        // ⭐ 변경 상태를 DB에 반영
+        groupRepository.save(group);
     }
+
 
     // ===========================
     // 멤버 목록 조회 (리더 + 일반 멤버)
