@@ -19,7 +19,7 @@ public class GroupMemberService {
     }
 
     // ================================
-    // 🔥 그룹 리더 여부 확인
+    // 🔥 그룹 리더 여부 확인 (study-service 호출)
     // ================================
     private boolean isLeader(Long groupId, Long requesterId) {
 
@@ -87,17 +87,28 @@ public class GroupMemberService {
     }
 
     // ================================
-    // 🔥 관리자 전용 멤버 삭제
+    // 🔥 관리자 & 리더 전용 멤버 삭제
     // ================================
     @Transactional
-    public void deleteByIdAsAdmin(Long memberId, boolean isAdmin) {
-
-        if (!isAdmin) {
-            throw new SecurityException("관리자만 멤버를 삭제할 수 있습니다.");
-        }
+    public void deleteByIdAsAdmin(Long memberId, Long requesterId, boolean isAdmin) {
 
         GroupMember member = repository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+
+        Long groupId = member.getGroupId();
+
+        // 🔥 study-service 호출을 이용해 리더 체크
+        boolean leader = isLeader(groupId, requesterId);
+
+        // 🔐 관리자도 아니고, 리더도 아니면 강퇴 불가
+        if (!isAdmin && !leader) {
+            throw new SecurityException("리더 또는 관리자만 멤버를 삭제할 수 있습니다.");
+        }
+
+        // 🔐 리더를 본인이 강퇴하려는 경우 방지 (선택)
+        if (leader && requesterId.equals(member.getUserId())) {
+            throw new SecurityException("리더는 자기 자신을 강퇴할 수 없습니다.");
+        }
 
         repository.delete(member);
     }

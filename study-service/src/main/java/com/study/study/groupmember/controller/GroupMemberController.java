@@ -29,13 +29,13 @@ public class GroupMemberController {
             @PathVariable Long memberId,
             @RequestBody GroupMemberStatusUpdateRequest request,
             @AuthenticationPrincipal JwtUserInfo user,
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader // 🔥 추가: 토큰 전달
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
         System.out.println(">>> [PATCH] JwtUserInfo role = " + user.getRole());
         System.out.println(">>> [PATCH] JwtUserInfo isAdmin = " + user.isAdmin());
 
         try {
-            boolean isAdmin = user.isAdmin();
+            boolean isAdmin = isAdmin(user);
 
             GroupMemberResponse updated =
                     service.updateStatusAsAdmin(memberId, request.getStatus(), isAdmin, authorizationHeader);
@@ -51,27 +51,42 @@ public class GroupMemberController {
 
     // ============================
     // DELETE /api/group-members/{memberId}
-    // 멤버 삭제 (관리자만)
+    // 멤버 삭제 (리더 + 관리자)
     // ============================
     @DeleteMapping("/{memberId}")
     public ResponseEntity<?> delete(
             @PathVariable Long memberId,
-            @AuthenticationPrincipal JwtUserInfo user
+            @AuthenticationPrincipal JwtUserInfo currentUser
     ) {
-        System.out.println(">>> [DELETE] JwtUserInfo role = " + user.getRole());
-        System.out.println(">>> [DELETE] JwtUserInfo isAdmin = " + user.isAdmin());
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
 
         try {
-            boolean isAdmin = user.isAdmin();
+            Long requesterId = currentUser.getUserId();
+            boolean admin = isAdmin(currentUser);
 
-            service.deleteByIdAsAdmin(memberId, isAdmin);
+            // ✅ 리더 또는 관리자만 멤버 삭제 가능
+            service.deleteByIdAsAdmin(memberId, requesterId, admin);
 
             return ResponseEntity.ok("멤버가 삭제되었습니다.");
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    /**
+     * 현재 로그인 유저가 관리자 권한인지 체크하는 헬퍼 메서드
+     */
+    private boolean isAdmin(JwtUserInfo user) {
+        if (user == null) return false;
+        return user.isAdmin();
+        // 또는 role 기반이라면 예:
+        // return "ADMIN".equals(user.getRole());
     }
 }
