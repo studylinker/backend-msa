@@ -95,16 +95,67 @@ public class StatsService {
         );
     }
 
+    // ===========================
+    // 5) 통계 데이터 내보내기
+    // ===========================
     public String generateCsv() {
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("===== 운영 대시보드 전체 통계 =====\n\n");
+
+
+        sb.append("[요약 통계]\n");
+        sb.append("항목,값\n");
+
         long totalUsers = summaryStatsRepository.countTotalUsers();
         long activeStudies = summaryStatsRepository.countActiveStudies();
         long newUsersToday = summaryStatsRepository.countNewUsersToday();
 
-        return "항목,값\n" +
-                "총 회원," + totalUsers + "\n" +
-                "활성 스터디," + activeStudies + "\n" +
-                "오늘 가입," + newUsersToday + "\n";
+        sb.append("총 회원,").append(totalUsers).append("\n");
+        sb.append("활성 스터디,").append(activeStudies).append("\n");
+        sb.append("오늘 가입,").append(newUsersToday).append("\n\n");
+
+
+        sb.append("[카테고리 비율]\n");
+        sb.append("카테고리,개수\n");
+
+        List<Object[]> categories = ratioRepo.getCategoryRatio();
+        for (Object[] row : categories) {
+            String category = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            sb.append(category).append(",").append(count).append("\n");
+        }
+
+        sb.append("\n");
+
+
+        sb.append("[월별 스터디 생성 수]\n");
+        sb.append("월,개설수\n");
+
+        List<Object[]> studyCounts = studyRepo.getMonthlyStudyCount();
+        for (Object[] row : studyCounts) {
+            String month = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            sb.append(month).append(",").append(count).append("\n");
+        }
+
+        sb.append("\n");
+
+
+        sb.append("[출석 상태 비율]\n");
+        sb.append("상태,개수\n");
+
+        List<Object[]> attendance = attendanceRepo.getAttendanceRatio();
+        for (Object[] row : attendance) {
+            String status = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            sb.append(status).append(",").append(count).append("\n");
+        }
+
+        return sb.toString();
     }
+
 }
 
 
