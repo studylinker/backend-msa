@@ -210,21 +210,32 @@ public class StudyGroupService {
     }
 
     // ===========================
-    // 멤버 목록 조회 (리더 권한)
+    // 멤버 목록 조회 (리더 + 일반 멤버)
     // ===========================
     @Transactional(readOnly = true)
     public List<GroupMemberResponse> getGroupMembersAsLeader(Long groupId, Long requesterId) {
 
         StudyGroup group = findById(groupId);
 
-        if (!group.getLeaderId().equals(requesterId)) {
-            throw new SecurityException("해당 그룹의 리더만 멤버 목록을 조회할 수 있습니다.");
+        // 1) 요청자가 이 그룹의 멤버인지 확인
+        GroupMember requester = memberRepository
+                .findByGroupIdAndUserId(groupId, requesterId)
+                .orElseThrow(() -> new SecurityException("해당 그룹의 멤버만 멤버 목록을 조회할 수 있습니다."));
+
+        // 2) 이 그룹의 전체 멤버 불러오기
+        List<GroupMember> allMembers = memberRepository.findByGroupId(groupId);
+
+        // 3) 리더이면 -> 전체 멤버(PENDING 포함) 반환
+        if (group.getLeaderId().equals(requesterId)) {
+            return allMembers.stream()
+                    .map(this::toMemberResponseWithUser)
+                    .toList();
         }
 
-        // ✅ [변경] 단순 fromEntity() → user 정보까지 채워주는 헬퍼 사용
-        return memberRepository.findByGroupId(groupId)
-                .stream()
-                .map(this::toMemberResponseWithUser)   // 🔹 이름/아이디 채워서 반환
+        // 4) 리더가 아닌 멤버이면 -> APPROVED 멤버만 반환
+        return allMembers.stream()
+                .filter(m -> m.getStatus() == GroupMember.Status.APPROVED)
+                .map(this::toMemberResponseWithUser)
                 .toList();
     }
 
