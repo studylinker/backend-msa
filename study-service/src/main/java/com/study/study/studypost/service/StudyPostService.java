@@ -140,6 +140,16 @@ public class StudyPostService {
         StudyPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + postId));
 
+        // ⭐ 수정 :: 신고 요청을 가장 먼저 처리 → 권한 체크 건너뜀
+        if (request.getReported() != null && request.getReported()) {
+            post.setReported(true);
+            post.setReportReason(request.getReportReason());
+            post.setUpdatedAt(LocalDateTime.now());
+
+            return StudyPostResponse.fromEntity(post);
+        }
+        // ⭐ 수정 끝
+
         Long writerId = post.getLeaderId();   // 🟡 기존 post.getLeader().getUserId() 대체
 
         // 작성자 또는 관리자만 수정 가능

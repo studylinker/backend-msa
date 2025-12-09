@@ -48,7 +48,7 @@ public class SecurityConfig {
                         // 2) 로그인, 회원가입 공개
                         .requestMatchers("/api/auth/tokens", "/api/users").permitAll()
 
-                        // ⭐ 3) 내부 통신용 엔드포인트는 무조건 허용
+                        // 3) 내부 통신용 엔드포인트는 무조건 허용
                         .requestMatchers("/internal/study/**").permitAll()
 
                         // 4) ADMIN 전용
