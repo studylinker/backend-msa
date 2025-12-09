@@ -3,7 +3,7 @@ package com.study.study.groupmember.controller;
 import com.study.study.groupmember.dto.GroupMemberResponse;
 import com.study.study.groupmember.dto.GroupMemberStatusUpdateRequest;
 import com.study.study.groupmember.service.GroupMemberService;
-import com.study.common.security.JwtUserInfo; // MSA 공통 Principal
+import com.study.common.security.JwtUserInfo;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +35,7 @@ public class GroupMemberController {
         System.out.println(">>> [PATCH] JwtUserInfo isAdmin = " + user.isAdmin());
 
         try {
-            boolean isAdmin = isAdmin(user);
+            boolean isAdmin = isAdmin(user);   // 🔹 여기서 헬퍼 사용
 
             GroupMemberResponse updated =
                     service.updateStatusAsAdmin(memberId, request.getStatus(), isAdmin, authorizationHeader);
@@ -44,7 +44,7 @@ public class GroupMemberController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (SecurityException e) { // 권한 문제
+        } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
     }
@@ -65,9 +65,8 @@ public class GroupMemberController {
 
         try {
             Long requesterId = currentUser.getUserId();
-            boolean admin = isAdmin(currentUser);
+            boolean admin = isAdmin(currentUser);  // 🔹 여기서도 헬퍼 사용
 
-            // 🔥 리더 또는 관리자만 삭제 가능
             service.deleteByIdAsAdmin(memberId, requesterId, admin);
 
             return ResponseEntity.ok("멤버가 삭제되었습니다.");
@@ -78,5 +77,14 @@ public class GroupMemberController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    // ============================
+    // 🔹 현재 로그인 유저가 관리자 권한인지 체크하는 헬퍼
+    // ============================
+    private boolean isAdmin(JwtUserInfo user) {
+        return user != null && user.isAdmin();
+        // 만약 role 문자열로 체크해야 하면:
+        // return user != null && "ADMIN".equals(user.getRole());
     }
 }
