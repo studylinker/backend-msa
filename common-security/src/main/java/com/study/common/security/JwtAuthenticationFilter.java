@@ -19,7 +19,7 @@ import java.util.List;
  *
  * ⚠️ UserDetailsService, DB 조회 없음 (토큰만 신뢰).
  */
-@Component   // 🔥 이거 추가!
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -38,37 +38,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        // 토큰이 없으면 그냥 다음 필터로 넘김
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7); // "Bearer " 제거
+        String token = header.substring(7);
 
-        // 토큰 유효성 검사
         if (!jwtTokenProvider.validateToken(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 이미 인증된 상태면 다시 세팅 안 함
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 토큰에서 정보 꺼내기
         Long userId = jwtTokenProvider.getUserId(token);
         String username = jwtTokenProvider.getUsername(token);
-        String role = jwtTokenProvider.getRole(token); // "USER", "ADMIN" 등
+        String role = jwtTokenProvider.getRole(token);
 
         JwtUserInfo principal = new JwtUserInfo(userId, username, role);
 
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
                         principal,
-                        null,
+                        token,   // ⭐⭐ 여기!!! JWT를 credential 에 저장
                         List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
 
