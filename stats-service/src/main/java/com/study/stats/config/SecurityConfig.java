@@ -79,8 +79,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // TODO: 실제 프론트 주소들로 교체 (배포 시 도메인 추가)
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-
+        config.setAllowedOrigins(List.of(
+                "https://gachon.studylink.click",
+                "http://localhost:3000"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
