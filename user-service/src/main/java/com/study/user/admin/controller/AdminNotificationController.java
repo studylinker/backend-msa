@@ -3,12 +3,12 @@ package com.study.user.admin.controller;
 import com.study.common.security.JwtUserInfo;
 import com.study.user.admin.dto.AdminNotificationRequest;
 import com.study.user.domain.User;
+import com.study.user.notificationclient.NotificationClient;
 import com.study.user.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -17,20 +17,20 @@ import java.util.List;
 public class AdminNotificationController {
 
     private final UserRepository userRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final NotificationClient notificationClient;
 
-    // 서버 환경에서 notification-service 주소
-    private static final String NOTIFICATION_BASE_URL = "http://gateway-service:10000";
-
-    public AdminNotificationController(UserRepository userRepository) {
+    public AdminNotificationController(
+            UserRepository userRepository,
+            NotificationClient notificationClient
+    ) {
         this.userRepository = userRepository;
+        this.notificationClient = notificationClient;
     }
 
     private boolean isAdmin(JwtUserInfo user) {
         return user != null && user.isAdmin();
     }
 
-    // 🔥 관리자: 알림 발송
     @PostMapping
     public ResponseEntity<String> sendNotification(
             @AuthenticationPrincipal JwtUserInfo userInfo,
@@ -42,7 +42,7 @@ public class AdminNotificationController {
 
         List<Long> userIds = request.getUserIds();
 
-        // ⭐ 전체 발송: userIds 비어있으면 전체 사용자
+        // 전체 사용자면 user-service DB 조회
         if (userIds == null || userIds.isEmpty()) {
             userIds = userRepository.findAll()
                     .stream()
@@ -50,22 +50,14 @@ public class AdminNotificationController {
                     .toList();
         }
 
-        // 실제로 notification-service로 넘길 body 구성
+        // forwarding DTO 만들어서 notification-service 로 전송
         AdminNotificationRequest forward = new AdminNotificationRequest();
         forward.setUserIds(userIds);
         forward.setMessage(request.getMessage());
         forward.setType(request.getType());
 
-        // notification-service의 /api/notifications 엔드포인트로 POST
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                NOTIFICATION_BASE_URL + "/api/notifications",
-                forward,
-                String.class
-        );
+        notificationClient.send(forward);
 
-        // 그대로 프론트에 응답 리턴 (JSON 문자열 그대로 통과)
-        return ResponseEntity
-                .status(response.getStatusCode())
-                .body(response.getBody());
+        return ResponseEntity.ok("알림 발송 완료");
     }
 }

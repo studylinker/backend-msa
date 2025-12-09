@@ -1,8 +1,14 @@
 server:
   port: 10000
 
+gateway:
+  base-url: http://gateway-service:10000
+
 study-service:
   base-url: http://study-service:10000   # ⭐ 여기에 추가!!
+
+notification-service:
+  base-url: http://notification-service:10000
 
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"

@@ -57,7 +57,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/health", "/", "/favicon.ico").permitAll()
-                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/api/notifications/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
