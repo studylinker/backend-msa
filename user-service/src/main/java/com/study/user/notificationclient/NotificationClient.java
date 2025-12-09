@@ -18,10 +18,13 @@ public class NotificationClient {
     @Value("${notification-service.base-url}")
     private String notificationBaseUrl;
 
-    // 🔥 내부 서비스 전용 ADMIN 토큰 발급
+    // 🔥 DB 관리자 계정 기반 내부 ADMIN 토큰 발급
     private String createInternalAdminToken() {
-        // userId=1, username="system-admin", role="ADMIN"
-        return jwtTokenProvider.createToken(1L, "system-admin", "ADMIN");
+        return jwtTokenProvider.createToken(
+                "admin",   // username
+                "ADMIN",   // role
+                1L         // userId
+        );
     }
 
     public void send(AdminNotificationRequest request) {
