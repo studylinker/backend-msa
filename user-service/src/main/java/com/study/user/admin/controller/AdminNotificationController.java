@@ -20,7 +20,7 @@ public class AdminNotificationController {
     private final RestTemplate restTemplate = new RestTemplate();
 
     // 서버 환경에서 notification-service 주소
-    private static final String NOTIFICATION_BASE_URL = "http://notification-service:10000";
+    private static final String NOTIFICATION_BASE_URL = "http://gateway-service:10000";
 
     public AdminNotificationController(UserRepository userRepository) {
         this.userRepository = userRepository;
