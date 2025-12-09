@@ -39,8 +39,9 @@ logging:
     root: INFO
     com.study.study: DEBUG
 
-# 🔹 user-service 호출용 설정 (study-service → user-service)
+# 다른 서비스 호출용 설정 (study-service → user-service & notification-service)
 user-service:
-  # 같은 클러스터 안이면 서비스 이름으로 호출하는 게 정석
   base-url: http://user-service:10000
-  # (외부에서 테스트할 땐 nodePort 쓰고 싶으면 http://<노드IP>:30557 로 바꿔도 됨)
+
+notification-service:
+  base-url: http://notification-service:10000

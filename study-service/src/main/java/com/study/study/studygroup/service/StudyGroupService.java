@@ -10,17 +10,19 @@ import com.study.study.studyschedule.dto.StudyScheduleResponse;
 import com.study.study.studyschedule.repository.StudyScheduleRepository;
 import com.study.study.studygroup.domain.GroupStatus;
 import com.study.study.studygroup.domain.StudyGroup;
-import com.study.study.studygroup.dto.NotificationSendRequest;
+import com.study.study.studygroup.dto.NotificationSendRequest;  // ⭐ 유지
 import com.study.study.studygroup.dto.StudyGroupRequest;
 import com.study.study.studygroup.repository.StudyGroupRepository;
 
-// ✅ [추가] user-service 호출용 Client/DTO
+// ✅ user-service 호출용 Client
 import com.study.study.userclient.UserClient;
 import com.study.study.userclient.dto.UserSummary;
 
+// ⭐ [추가] notification-service 호출용 Client
+import com.study.study.userclient.NotificationClient;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,28 +35,27 @@ public class StudyGroupService {
     private final GroupMemberRepository memberRepository;
     private final StudyScheduleRepository scheduleRepository;
 
-    // ✅ [추가] user-service 호출용 필드
-    private final UserClient userClient;   // 🔹 user-service 호출용
+    private final UserClient userClient;
 
-    // 🔹 notification-service 호출용 RestTemplate (기존 그대로 사용)
-    private final RestTemplate notificationClient = new RestTemplate();
-
-    private static final String NOTIFICATION_BASE_URL = "http://notification-service:10000";
+    // ⭐ [변경] 기존 RestTemplate 제거 → NotificationClient 사용
+    private final NotificationClient notificationClient;
 
     public StudyGroupService(
             StudyGroupRepository groupRepository,
             GroupMemberRepository memberRepository,
             StudyScheduleRepository scheduleRepository,
-            UserClient userClient              // ✅ [추가] 생성자 주입
+            UserClient userClient,
+            NotificationClient notificationClient // ⭐ 추가
     ) {
         this.groupRepository = groupRepository;
         this.memberRepository = memberRepository;
         this.scheduleRepository = scheduleRepository;
-        this.userClient = userClient;       // ✅ [추가] 필드에 할당
+        this.userClient = userClient;
+        this.notificationClient = notificationClient; // ⭐ 추가
     }
 
     // ===========================
-    // 🔔 공통 알림 전송 메서드
+    // 🔔 알림 전송 메서드 (리팩토링)
     // ===========================
     private void sendNotification(List<Long> userIds, String message, String type) {
         try {
@@ -63,11 +64,9 @@ public class StudyGroupService {
             req.setMessage(message);
             req.setType(type);
 
-            notificationClient.postForObject(
-                    NOTIFICATION_BASE_URL + "/api/notifications",
-                    req,
-                    Void.class
-            );
+            // ⭐ [변경] RestTemplate → NotificationClient 로 교체
+            notificationClient.send(req);
+
         } catch (Exception e) {
             System.out.println("⚠ notification-service 호출 실패: " + e.getMessage());
         }
@@ -76,7 +75,6 @@ public class StudyGroupService {
     // ===========================
     // 🔹 GroupMember → Response + 유저 정보 채우기
     // ===========================
-    // ✅ [추가] user-service 를 호출해서 username / name 을 세팅하는 헬퍼 메서드
     private GroupMemberResponse toMemberResponseWithUser(GroupMember member) {
         GroupMemberResponse dto = GroupMemberResponse.fromEntity(member);
 
@@ -110,7 +108,7 @@ public class StudyGroupService {
     }
 
     // ===========================
-    // 그룹 생성 (리더 = 요청자)
+    // 그룹 생성
     // ===========================
     @Transactional
     public StudyGroup createGroup(StudyGroupRequest request, Long leaderId) {
@@ -214,29 +212,25 @@ public class StudyGroupService {
 
 
     // ===========================
-    // 멤버 목록 조회 (리더 + 일반 멤버)
+    // 멤버 목록 조회
     // ===========================
     @Transactional(readOnly = true)
     public List<GroupMemberResponse> getGroupMembersAsLeader(Long groupId, Long requesterId) {
 
         StudyGroup group = findById(groupId);
 
-        // 1) 요청자가 이 그룹의 멤버인지 확인
         GroupMember requester = memberRepository
                 .findByGroupIdAndUserId(groupId, requesterId)
                 .orElseThrow(() -> new SecurityException("해당 그룹의 멤버만 멤버 목록을 조회할 수 있습니다."));
 
-        // 2) 이 그룹의 전체 멤버 불러오기
         List<GroupMember> allMembers = memberRepository.findByGroupId(groupId);
 
-        // 3) 리더이면 -> 전체 멤버(PENDING 포함) 반환
         if (group.getLeaderId().equals(requesterId)) {
             return allMembers.stream()
                     .map(this::toMemberResponseWithUser)
                     .toList();
         }
 
-        // 4) 리더가 아닌 멤버이면 -> APPROVED 멤버만 반환
         return allMembers.stream()
                 .filter(m -> m.getStatus() == GroupMember.Status.APPROVED)
                 .map(this::toMemberResponseWithUser)
@@ -250,8 +244,7 @@ public class StudyGroupService {
         GroupMember member = memberRepository.findByGroupIdAndUserId(groupId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버가 존재하지 않습니다."));
 
-        // ✅ [변경] user 정보까지 포함된 DTO 반환
-        return toMemberResponseWithUser(member);       // 🔹 변경
+        return toMemberResponseWithUser(member);
     }
 
     // ===========================
@@ -261,8 +254,7 @@ public class StudyGroupService {
         GroupMember leader = memberRepository.findByGroupIdAndRole(groupId, GroupMember.Role.LEADER)
                 .orElseThrow(() -> new IllegalArgumentException("리더가 존재하지 않습니다."));
 
-        // ✅ [변경] user 정보까지 포함된 DTO 반환
-        return toMemberResponseWithUser(leader);       // 🔹 변경
+        return toMemberResponseWithUser(leader);
     }
 
     // ===========================
@@ -285,15 +277,14 @@ public class StudyGroupService {
 
         GroupMember saved = memberRepository.save(member);
 
-        // 리더에게 가입 신청 알림
+        // 리더에게 알림
         sendNotification(
                 List.of(group.getLeaderId()),
                 "새로운 스터디 가입 요청이 도착했습니다.",
                 "REQUEST"
         );
 
-        // ✅ [변경] 반환 DTO에도 username/name 채워서 리턴
-        return toMemberResponseWithUser(saved);        // 🔹 변경 (원하면 여기도 이름 채워줌)
+        return toMemberResponseWithUser(saved);
     }
 
     // ===========================
@@ -357,7 +348,7 @@ public class StudyGroupService {
     }
 
     // ===========================
-    // 스케줄 생성 (리더만)
+    // 스케줄 생성
     // ===========================
     @Transactional
     public StudyScheduleResponse createSchedule(Long groupId, Long leaderId, StudyScheduleRequest request) {
@@ -395,7 +386,7 @@ public class StudyGroupService {
     }
 
     // ===========================
-    // 내가 참여(승인)한 스터디 그룹 목록
+    // 내가 참여한 그룹 목록
     // ===========================
     public List<StudyGroup> findJoinedGroups(Long userId) {
 
