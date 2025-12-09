@@ -7,7 +7,7 @@ import com.study.study.studyschedule.dto.StudyScheduleRequest;
 import com.study.study.studyschedule.dto.StudyScheduleResponse;
 import com.study.study.studygroup.service.StudyGroupService;
 
-import com.study.common.security.JwtUserInfo;
+import com.study.common.security.JwtUserInfo; // 🟡 JwtUserInfo 추가
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class StudyGroupController {
+public class StudyGroupController { // 클래스 시작
 
     private final StudyGroupService service;
 
@@ -26,13 +26,17 @@ public class StudyGroupController {
         this.service = service;
     }
 
-    private boolean isAdmin(JwtUserInfo user) {
+    // ============================
+    // 관리자 체크용 유틸 (JwtUserInfo 기준)
+    // ============================
+    private boolean isAdmin(JwtUserInfo user) { // 🟡 타입 변경
         return user != null && user.isAdmin();
     }
 
-    // ============================================
-    // 그룹 전체 조회
-    // ============================================
+    // ============================
+    // GET /api/study-groups
+    // 스터디 그룹 전체 조회
+    // ============================
     @GetMapping("/study-groups")
     public ResponseEntity<List<StudyGroupResponse>> getAll() {
         List<StudyGroup> groups = service.findAll();
@@ -42,9 +46,10 @@ public class StudyGroupController {
         return ResponseEntity.ok(response);
     }
 
-    // ============================================
-    // 그룹 단건 조회
-    // ============================================
+    // ============================
+    // GET /api/study-groups/{groupId}
+    // 단건 조회
+    // ============================
     @GetMapping("/study-groups/{groupId}")
     public ResponseEntity<?> getById(@PathVariable Long groupId) {
         try {
@@ -56,37 +61,49 @@ public class StudyGroupController {
         }
     }
 
-    // ============================================
-    // 그룹 생성
-    // ============================================
+    // ============================
+    // POST /api/study-groups
+    // 그룹 생성 (로그인 필수)
+    // ============================
     @PostMapping("/study-groups")
     public ResponseEntity<?> create(
             @RequestBody StudyGroupRequest request,
             @AuthenticationPrincipal JwtUserInfo user
     ) {
+        System.out.println("[StudyGroupController] POST /api/study-groups 호출됨");
         if (user == null) {
+            System.out.println("  - AuthenticationPrincipal = null (로그인 안 됨)");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("로그인이 필요합니다.");
         }
 
+        System.out.println("  - userId   : " + user.getUserId());
+        System.out.println("  - username : " + user.getUsername());
+        System.out.println("  - role     : " + user.getRole());
+
         try {
             Long userId = user.getUserId();
             StudyGroup created = service.createGroup(request, userId);
+
+            System.out.println("  - 그룹 생성 완료, groupId = " + created.getGroupId());
+
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(StudyGroupResponse.fromEntity(created));
         } catch (IllegalArgumentException e) {
+            System.out.println("  - IllegalArgumentException: " + e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
+    } // ⚠️ 기존 코드에서 이 위치에 불필요한 '}'가 있었습니다.
 
-    // ============================================
-    // 그룹 수정
-    // ============================================
+    // ============================
+    // PUT /study-groups/{groupId}
+    // 정보 수정 (리더 + 관리자)
+    // ============================
     @PutMapping("/study-groups/{groupId}")
     public ResponseEntity<?> updateGroup(
             @PathVariable Long groupId,
             @RequestBody StudyGroupRequest request,
-            @AuthenticationPrincipal JwtUserInfo currentUser
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 JwtUserInfo 적용
     ) {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
@@ -107,14 +124,15 @@ public class StudyGroupController {
         }
     }
 
-    // ============================================
-    // 그룹 상태 변경
-    // ============================================
+    // ============================
+    // PATCH /study-groups/{groupId}
+    // 상태 변경 (리더 + 관리자)
+    // ============================
     @PatchMapping("/study-groups/{groupId}")
     public ResponseEntity<?> updateGroupStatus(
             @PathVariable Long groupId,
             @RequestBody GroupStatusUpdateRequest dto,
-            @AuthenticationPrincipal JwtUserInfo currentUser
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 변경됨
     ) {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
@@ -135,13 +153,14 @@ public class StudyGroupController {
         }
     }
 
-    // ============================================
-    // 그룹 삭제
-    // ============================================
+    // ============================
+    // DELETE /study-groups/{id}
+    // 그룹 삭제 (리더 + 관리자)
+    // ============================
     @DeleteMapping("/study-groups/{id}")
     public ResponseEntity<?> delete(
             @PathVariable Long id,
-            @AuthenticationPrincipal JwtUserInfo user
+            @AuthenticationPrincipal JwtUserInfo user // 🟡 JwtUserInfo 적용
     ) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -164,26 +183,23 @@ public class StudyGroupController {
         }
     }
 
-    // ============================================
-    // 멤버 조회 (리더 + 일반 멤버)
-    // ============================================
+    // =====================================================================
+    // 멤버 관련 API
+    // =====================================================================
+
     @GetMapping("/study-groups/{groupId}/members")
     public ResponseEntity<?> getGroupMembers(
             @PathVariable Long groupId,
-            @AuthenticationPrincipal JwtUserInfo currentUser
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 변경됨
     ) {
         if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("로그인이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
 
         try {
             Long requesterId = currentUser.getUserId();
-
-            // ⭐ 리더/일반 멤버 정책 적용
             List<GroupMemberResponse> members =
-                    service.getGroupMembersVisible(groupId, requesterId);
-
+                    service.getGroupMembersAsLeader(groupId, requesterId);
             return ResponseEntity.ok(members);
 
         } catch (SecurityException e) {
@@ -195,25 +211,57 @@ public class StudyGroupController {
         }
     }
 
+    @GetMapping("/study-groups/{groupId}/members/{userId}")
+    public ResponseEntity<?> getGroupMember(
+            @PathVariable Long groupId,
+            @PathVariable Long userId
+    ) {
+        try {
+            GroupMemberResponse member = service.getGroupMember(groupId, userId);
+            return ResponseEntity.ok(member);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("해당 멤버를 찾을 수 없습니다. groupId: " + groupId + ", userId: " + userId);
+        }
+    }
+
     @GetMapping("/study-groups/{groupId}/leader")
     public ResponseEntity<?> getGroupLeader(@PathVariable Long groupId) {
         try {
             GroupMemberResponse leader = service.getGroupLeader(groupId);
             return ResponseEntity.ok(leader);
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("리더 정보를 찾을 수 없습니다. groupId: " + groupId);
         }
     }
 
-    // ============================================
-    // 멤버 관련 승인/거절
-    // ============================================
+    @PostMapping("/study-groups/{groupId}/members")
+    public ResponseEntity<?> requestJoinGroup(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal JwtUserInfo user // 🟡 JwtUserInfo 적용
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        try {
+            Long userId = user.getUserId(); // 🟡 JwtUserInfo 방식
+            GroupMemberResponse pendingMember = service.requestJoinGroup(groupId, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(pendingMember);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/study-groups/{groupId}/members/{userId}/approve")
     public ResponseEntity<?> approveMember(
             @PathVariable Long groupId,
             @PathVariable Long userId,
-            @AuthenticationPrincipal JwtUserInfo currentUser
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 JwtUserInfo 적용
     ) {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
@@ -222,7 +270,8 @@ public class StudyGroupController {
         try {
             Long leaderId = currentUser.getUserId();
             service.approveMember(groupId, userId, leaderId);
-            return ResponseEntity.ok("회원 가입이 승인되었습니다.");
+
+            return ResponseEntity.ok("회원 가입이 승인되었습니다. groupId: " + groupId + ", userId: " + userId);
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
@@ -236,7 +285,7 @@ public class StudyGroupController {
     public ResponseEntity<?> rejectMember(
             @PathVariable Long groupId,
             @PathVariable Long userId,
-            @AuthenticationPrincipal JwtUserInfo currentUser
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 JwtUserInfo 적용
     ) {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
@@ -245,7 +294,8 @@ public class StudyGroupController {
         try {
             Long leaderId = currentUser.getUserId();
             service.rejectMember(groupId, userId, leaderId);
-            return ResponseEntity.ok("회원 가입이 거절되었습니다.");
+
+            return ResponseEntity.ok("회원 가입이 거절되었습니다. groupId: " + groupId + ", userId: " + userId);
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
@@ -255,18 +305,43 @@ public class StudyGroupController {
         }
     }
 
-    // ============================================
-    // 일정 조회
-    // ============================================
+    // =====================================================================
+    // 일정 관련 API
+    // =====================================================================
+
     @GetMapping("/study-groups/{groupId}/schedules")
     public ResponseEntity<?> getGroupSchedules(@PathVariable Long groupId) {
         try {
             List<StudyScheduleResponse> schedules = service.getGroupSchedules(groupId);
             return ResponseEntity.ok(schedules);
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("일정 정보를 찾을 수 없습니다.");
+                    .body("일정 정보를 찾을 수 없습니다. groupId: " + groupId);
         }
     }
 
+    @PostMapping("/study-groups/{groupId}/schedules")
+    public ResponseEntity<?> createSchedule(
+            @PathVariable Long groupId,
+            @RequestBody StudyScheduleRequest request,
+            @AuthenticationPrincipal JwtUserInfo currentUser // 🟡 JwtUserInfo 적용
+    ) {
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
+
+        try {
+            Long leaderId = currentUser.getUserId();
+            StudyScheduleResponse created = service.createSchedule(groupId, leaderId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

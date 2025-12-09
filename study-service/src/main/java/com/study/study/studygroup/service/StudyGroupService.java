@@ -210,36 +210,7 @@ public class StudyGroupService {
     }
 
     // ===========================
-    // ⭐ 멤버 목록 조회 (리더 + 일반 멤버 모두)
-    // ===========================
-    @Transactional(readOnly = true)
-    public List<GroupMemberResponse> getGroupMembersVisible(Long groupId, Long requesterId) {
-
-        StudyGroup group = findById(groupId);
-
-        // 요청자가 그룹 멤버인지 확인
-        GroupMember requester = memberRepository
-                .findByGroupIdAndUserId(groupId, requesterId)
-                .orElseThrow(() -> new SecurityException("그룹 멤버만 조회 가능합니다."));
-
-        List<GroupMember> allMembers = memberRepository.findByGroupId(groupId);
-
-        // 리더면 전체(PENDING 포함) 조회
-        if (group.getLeaderId().equals(requesterId)) {
-            return allMembers.stream()
-                    .map(this::toMemberResponseWithUser)
-                    .toList();
-        }
-
-        // 일반 멤버는 APPROVED 멤버만 조회
-        return allMembers.stream()
-                .filter(m -> m.getStatus() == GroupMember.Status.APPROVED)
-                .map(this::toMemberResponseWithUser)
-                .toList();
-    }
-
-    // ===========================
-    // 멤버 목록 조회 (리더 전용)
+    // 멤버 목록 조회 (리더 권한)
     // ===========================
     @Transactional(readOnly = true)
     public List<GroupMemberResponse> getGroupMembersAsLeader(Long groupId, Long requesterId) {
@@ -250,9 +221,10 @@ public class StudyGroupService {
             throw new SecurityException("해당 그룹의 리더만 멤버 목록을 조회할 수 있습니다.");
         }
 
+        // ✅ [변경] 단순 fromEntity() → user 정보까지 채워주는 헬퍼 사용
         return memberRepository.findByGroupId(groupId)
                 .stream()
-                .map(this::toMemberResponseWithUser)
+                .map(this::toMemberResponseWithUser)   // 🔹 이름/아이디 채워서 반환
                 .toList();
     }
 
@@ -263,7 +235,8 @@ public class StudyGroupService {
         GroupMember member = memberRepository.findByGroupIdAndUserId(groupId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버가 존재하지 않습니다."));
 
-        return toMemberResponseWithUser(member);
+        // ✅ [변경] user 정보까지 포함된 DTO 반환
+        return toMemberResponseWithUser(member);       // 🔹 변경
     }
 
     // ===========================
@@ -273,7 +246,8 @@ public class StudyGroupService {
         GroupMember leader = memberRepository.findByGroupIdAndRole(groupId, GroupMember.Role.LEADER)
                 .orElseThrow(() -> new IllegalArgumentException("리더가 존재하지 않습니다."));
 
-        return toMemberResponseWithUser(leader);
+        // ✅ [변경] user 정보까지 포함된 DTO 반환
+        return toMemberResponseWithUser(leader);       // 🔹 변경
     }
 
     // ===========================
@@ -296,13 +270,15 @@ public class StudyGroupService {
 
         GroupMember saved = memberRepository.save(member);
 
+        // 리더에게 가입 신청 알림
         sendNotification(
                 List.of(group.getLeaderId()),
                 "새로운 스터디 가입 요청이 도착했습니다.",
                 "REQUEST"
         );
 
-        return toMemberResponseWithUser(saved);
+        // ✅ [변경] 반환 DTO에도 username/name 채워서 리턴
+        return toMemberResponseWithUser(saved);        // 🔹 변경 (원하면 여기도 이름 채워줌)
     }
 
     // ===========================
