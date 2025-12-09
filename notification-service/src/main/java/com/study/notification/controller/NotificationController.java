@@ -34,18 +34,13 @@ public class NotificationController {
         return service.findUnreadResponsesByUser(userId);
     }
 
-    // 🔹 관리자 알림 생성
+    // 🔹 알림 생성 (관리자 제한 제거)
     @PostMapping
     public List<NotificationResponse> create(
-            @AuthenticationPrincipal JwtUserInfo admin,
             @RequestBody NotificationRequest body
     ) {
-        // 관리자 권한 체크
-        if (!admin.isAdmin()) {
-            throw new AccessDeniedException("알림 생성은 관리자만 가능합니다.");
-        }
-
         List<Long> userIds = body.getUserIds();
+
         if (userIds == null || userIds.isEmpty()) {
             throw new IllegalArgumentException("알림 대상 userIds는 최소 1명 이상 필요합니다.");
         }
