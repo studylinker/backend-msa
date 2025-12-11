@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * Authorization 헤더에서 JWT를 꺼내 검증하고,
- * 유효하면 JwtUserInfo를 principal로 SecurityContext에 저장하는 공통 필터.
+ * 유효하면 JwtUserInfo를 principal로 SecurityContext에 저장하는 공통 필터
  *
  * ⚠️ UserDetailsService, DB 조회 없음 (토큰만 신뢰).
  */
