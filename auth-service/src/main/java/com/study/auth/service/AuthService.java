@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate; // [추가] Redis 사용을 위한 import
-import java.util.concurrent.TimeUnit;
+
 
 @Service
 public class AuthService {
@@ -65,12 +65,9 @@ public class AuthService {
     /**
      * 로그아웃: 토큰 블랙리스트에 추가
      */
-    public void logout(String token) {
-    long expiration = jwtTokenProvider.getExpiration(token).getTime() - System.currentTimeMillis();
-    
-    if (expiration > 0) {
-        // Redis에 저장 (블랙리스트 등록)
-        redisTemplate.opsForValue().set(token, "logout", expiration, TimeUnit.MILLISECONDS);
+ public void logout(String token) {
+        // 시간 계산 로직 제거함
+        // 만료 시간 없이 Redis에 저장 (나중에 수동 삭제 필요)
+        redisTemplate.opsForValue().set(token, "logout");
     }
-}
 }
