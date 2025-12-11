@@ -31,17 +31,27 @@ public class AuthController {
     // DELETE /api/auth/logout
     // 토큰 만료(로그아웃 처리)
     // ============================
-    @DeleteMapping("/logout")
-    public ResponseEntity<?> logout(
-            @RequestHeader(value = "Authorization", required = false) String header) {
+   @PostMapping("/logout") // 👈 여기가 핵심입니다!
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        
+        // 1. 헤더 확인 로그
+        String header = request.getHeader("Authorization");
+        System.out.println("=== [Controller] 로그아웃 요청 진입 ===");
+        System.out.println("=== [Controller] 헤더 값: " + header);
 
         if (header == null || !header.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body("Authorization 헤더가 없습니다.");
+            System.out.println("=== [Controller] 헤더 없음 또는 Bearer 아님 -> 400 반환 ===");
+            return ResponseEntity.badRequest().body("Authorization 헤더가 없거나 형식이 틀립니다.");
         }
 
-        String token = header.substring(7); // "Bearer " 제거
-        authService.logout(token); // 👉 서비스에 위임
-
+        // 2. 토큰 추출 및 서비스 호출
+        String token = header.substring(7);
+        System.out.println("=== [Controller] 토큰 추출 완료: " + token);
+        
+        authService.logout(token);
+        
+        System.out.println("=== [Controller] 서비스 호출 완료, 200 OK 반환 ===");
         return ResponseEntity.ok("로그아웃 되었습니다.");
     }
 }
+
