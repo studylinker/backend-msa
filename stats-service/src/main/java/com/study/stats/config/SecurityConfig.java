@@ -2,6 +2,7 @@ package com.study.stats.config;
 
 import com.study.common.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import com.study.common.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -31,7 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -65,7 +66,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // UsernamePasswordAuthenticationFilter 전에 JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenProvider), 
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
