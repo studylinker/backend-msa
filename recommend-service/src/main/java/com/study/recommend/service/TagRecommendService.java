@@ -62,9 +62,17 @@ public class TagRecommendService {
                     double distanceScore = DistanceScoreUtil.calculateDistanceScore(distanceKm);
 
                     List<String> groupTags = parseJsonArrayToList(p.getCategory());
-                    double tagSimilarity = TagSimilarityUtil.jaccardSimilarity(finalUserTags, groupTags);
 
+                    // 1) 사용자 태그 & 그룹 태그 정규화
+                    List<String> userNorm = TagSimilarityUtil.normalizeTags(finalUserTags);
+                    List<String> groupNorm = TagSimilarityUtil.normalizeTags(groupTags);
+
+                    // 2) 정규화된 태그로 유사도 계산
+                    double tagSimilarity = TagSimilarityUtil.jaccardSimilarity(userNorm, groupNorm);
+
+                    // 최종 점수 계산 (기존 동일)
                     double finalScore = distanceScore * weightAlpha + tagSimilarity * weightBeta;
+
 
                     return TagRecommendGroupDto.builder()
                             .studyGroupId(p.getGroupId())
