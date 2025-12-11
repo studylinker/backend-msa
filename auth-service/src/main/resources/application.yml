@@ -9,7 +9,22 @@ user-service:
 jwt:
   secret: "MySuperSecureSecretKey_ForStudyLinker_App_2025_AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ"
   expiration: 3600000
-
+  
+spring:
+  data:
+    redis:
+      host: my-redis-master.redis.svc.cluster.local
+      port: 6379
+      
+      # [수정] 위에서 찾은 비밀번호를 따옴표 안에 붙여넣으세요
+      password: mysecurepassword
+      
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
 
 # logging:
 #   level:
