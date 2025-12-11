@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate; // [추가] Redis 사용을 위한 import
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthService {
@@ -14,12 +16,15 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RestTemplate restTemplate;
     private final String userServiceBaseUrl;
+    private final StringRedisTemplate redisTemplate;
 
-    public AuthService(JwtTokenProvider jwtTokenProvider,
+   public AuthService(JwtTokenProvider jwtTokenProvider,
                        RestTemplate restTemplate,
+                       StringRedisTemplate redisTemplate, // 여기에 추가됨
                        @Value("${user-service.base-url}") String userServiceBaseUrl) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate; // 여기에 할당
         this.userServiceBaseUrl = userServiceBaseUrl;
     }
 
