@@ -9,7 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *   common-security, common-web 까지 모두 스캔되도록 함
  */
 @SpringBootApplication(scanBasePackages = "com.study")
-public class SystemServiceApplication {
+public class SystemServiceApplication(excludeName = {
+                "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration",
+                "org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration"
+        }) {
 
     public static void main(String[] args) {
         SpringApplication.run(SystemServiceApplication.class, args);
