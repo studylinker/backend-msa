@@ -61,6 +61,11 @@ public class AuthService {
      * 로그아웃: 토큰 블랙리스트에 추가
      */
     public void logout(String token) {
-        jwtTokenProvider.invalidateToken(token);
+    long expiration = jwtTokenProvider.getExpiration(token).getTime() - System.currentTimeMillis();
+    
+    if (expiration > 0) {
+        // Redis에 저장 (블랙리스트 등록)
+        redisTemplate.opsForValue().set(token, "logout", expiration, TimeUnit.MILLISECONDS);
     }
+}
 }
