@@ -19,7 +19,7 @@ import java.util.List;
  *
  * ⚠️ UserDetailsService, DB 조회 없음 (토큰만 신뢰).
  */
-@Component
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
