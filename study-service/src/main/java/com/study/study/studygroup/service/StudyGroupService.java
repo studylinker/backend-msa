@@ -128,6 +128,8 @@ public class StudyGroupService {
         group.setLatitude(request.getLatitude() != null ? BigDecimal.valueOf(request.getLatitude()) : null);
         group.setLongitude(request.getLongitude() != null ? BigDecimal.valueOf(request.getLongitude()) : null);
 
+        // ⭐⭐⭐ 여기가 핵심!! 기본 상태를 ACTIVE로 설정
+        group.setStatus(GroupStatus.ACTIVE);
         StudyGroup saved = groupRepository.save(group);
 
         // 리더를 멤버로 자동 등록
