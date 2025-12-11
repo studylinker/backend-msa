@@ -42,7 +42,7 @@ public class PopularLocationService {
             distanceWeight /= sum;
         }
 
-        // 🔥 람다에서 사용할 final 사본
+        // 람다에서 사용할 final 사본
         final double finalPopWeight = popWeight;
         final double finalDistanceWeight = distanceWeight;
 
@@ -71,9 +71,12 @@ public class PopularLocationService {
                     double distanceKm = p.getDistanceKm() == null ? 0.0 : p.getDistanceKm();
 
                     // 인기도 점수 (멤버 수 비율)
-                    double popScore = maxMemberCount > 0
+                    double popScoreRaw = maxMemberCount > 0
                             ? (double) memberCount / maxMemberCount
                             : 0.0;
+
+                    // 🔥 제곱근 스케일링 적용
+                    double popScore = Math.sqrt(popScoreRaw);
 
                     // 거리 점수 (가까울수록 1, 반경 끝이면 0)
                     double distanceScore = 1.0 - (distanceKm / radiusKm);
