@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,13 +23,9 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final StringRedisTemplate redisTemplate; // [추가]
-    
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, 
-                                   StringRedisTemplate redisTemplate) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -54,13 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
-            // 401 Unauthorized 에러 반환하고 필터 종료
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Logged out token."); 
-            return; // 더 이상 진행하지 않음
-        }
-                
 
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
