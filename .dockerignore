@@ -1,0 +1,13 @@
+# 테스트 폴더
+test/
+**/test/
+
+# 불필요한 파일들
+// *.md
+// .git/
+// .gitignore
+// .github/
+// .idea/
+// *.iml
+// **/target/
+// !**/target/*.jar
