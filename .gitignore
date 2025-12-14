@@ -18,14 +18,5 @@ Thumbs.db
 *.tmp
 *.bak
 
-### 테스트
-/auth-service/src/test/
-/notification-service/src/test/
-/recommend-service/src/test/
-/stats-service/src/test/
-/study-service/src/test/
-/system-service/src/test/
-/user-service/src/test/
-
 ### 환경 설정 (필요시)
 *.env
