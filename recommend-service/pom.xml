@@ -12,7 +12,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>recommendation-service</artifactId>
+    <artifactId>recommend-service</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
