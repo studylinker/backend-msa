@@ -1,4 +1,4 @@
-package com.study.auth.service.config;
+package com.study.auth.config;
 
 import com.study.auth.service.RedisTokenBlacklistService; // [추가]
 import com.study.common.security.JwtAuthenticationFilter; // [추가]

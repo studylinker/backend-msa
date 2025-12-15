@@ -1,4 +1,4 @@
-package com.study.auth.service.config;
+package com.study.auth.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
