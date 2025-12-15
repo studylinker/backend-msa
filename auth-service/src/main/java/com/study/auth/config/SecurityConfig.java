@@ -58,7 +58,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // 1. 헬스체크 허용
-                        .requestMatchers("/actuator/health", "/health", "/", "/favicon.ico").permitAll()
+                        .requestMatchers("/actuator/health", "/health", "/", "/favicon.ico","/actuator/prometheus").permitAll()
 
                         // 2. 로그인(Login)은 누구나 접근 가능해야 함 -> permitAll
                         .requestMatchers("/api/auth/login", "/api/auth/verify-login").permitAll()
